@@ -3421,3 +3421,116 @@ right now, coalesce will do it
  SQL> ALTER TABLESPACE USERS COALESCE;
 ```
 ------------------------------------------------------------------------------------------
+
+```sh
+### Method 1: Adding a New Datafile
+To extend the tablespace size in an Oracle database, you typically need to add a new datafile to the tablespace or increase the size of an existing datafile. Here are the steps to achieve both methods:
+
+1. **Connect to the Database**:
+   ```sql
+   sqlplus / as sysdba
+   ```
+
+2. **Add a New Datafile to the Tablespace**:
+   ```sql
+   ALTER TABLESPACE tablespace_name 
+   ADD DATAFILE '/path/to/datafile.dbf' SIZE 100M;
+   ```
+
+   - `tablespace_name`: The name of the tablespace you want to extend.
+   - `/path/to/datafile.dbf`: The path where the new datafile will be created.
+   - `SIZE 100M`: The initial size of the new datafile.
+
+### Method 2: Increasing the Size of an Existing Datafile
+
+1. **Connect to the Database**:
+   ```sql
+   sqlplus / as sysdba
+   ```
+
+2. **Increase the Size of an Existing Datafile**:
+   ```sql
+   ALTER DATABASE DATAFILE '/path/to/datafile.dbf' RESIZE 200M;
+   ```
+
+   - `/path/to/datafile.dbf`: The path of the existing datafile you want to resize.
+   - `RESIZE 200M`: The new size for the datafile.
+
+### Automatic Extension (Optional)
+
+You can also set a datafile to automatically extend as needed.
+
+1. **Connect to the Database**:
+   ```sql
+   sqlplus / as sysdba
+   ```
+
+2. **Enable Automatic Extension**:
+   ```sql
+   ALTER DATABASE DATAFILE '/path/to/datafile.dbf' AUTOEXTEND ON NEXT 10M MAXSIZE 500M;
+   ```
+
+   - `AUTOEXTEND ON`: Enables automatic extension.
+   - `NEXT 10M`: The size increment for each extension.
+   - `MAXSIZE 500M`: The maximum size the datafile can grow to.
+
+### Example
+
+Let's assume you have a tablespace named `USERS` and you want to extend it.
+
+#### Adding a New Datafile
+
+```sql
+ALTER TABLESPACE USERS 
+ADD DATAFILE '/u01/app/oracle/oradata/orcl/users02.dbf' SIZE 100M;
+```
+
+#### Increasing the Size of an Existing Datafile
+
+```sql
+ALTER DATABASE DATAFILE '/u01/app/oracle/oradata/orcl/users01.dbf' RESIZE 500M;
+```
+
+#### Enabling Automatic Extension
+
+```sql
+ALTER DATABASE DATAFILE '/u01/app/oracle/oradata/orcl/users01.dbf' AUTOEXTEND ON NEXT 10M MAXSIZE UNLIMITED;
+```
+
+### Checking Tablespace Usage
+
+To monitor tablespace usage, you can use the following query:
+
+```sql
+SELECT
+    df.tablespace_name,
+    df.file_name,
+    df.bytes / 1024 / 1024 AS size_mb,
+    (df.bytes - fs.bytes) / 1024 / 1024 AS used_mb,
+    fs.bytes / 1024 / 1024 AS free_mb,
+    ROUND(((df.bytes - fs.bytes) / df.bytes) * 100, 2) AS pct_used
+FROM
+    dba_data_files df,
+    (SELECT
+         file_id,
+         SUM(bytes) AS bytes
+     FROM
+         dba_free_space
+     GROUP BY
+         file_id) fs
+WHERE
+    df.file_id = fs.file_id(+)
+ORDER BY
+    tablespace_name;
+
+This will give you an overview of the tablespace sizes and their usage.
+
+### Summary
+
+- **Adding a new datafile** extends the tablespace by creating a new file.
+- **Increasing the size of an existing datafile** extends the tablespace by resizing the file.
+- **Enabling automatic extension** allows the datafile to grow automatically as needed.
+
+These methods ensure that your tablespace has enough space to accommodate the data growth.
+```
+-------------------------------------------------------------------------------------------------
