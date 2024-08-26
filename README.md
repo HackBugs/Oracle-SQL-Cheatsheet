@@ -120,7 +120,7 @@ grant ...
 
 ### SQL for System Info
 
-```sh
+```sql
 set linesize ...
 set oracle_sid=orcl
 SQL> archive log list;
@@ -128,7 +128,7 @@ SQL> archive log list;
 
 ### Unix Commands
 
-```sh
+```sql
 id
 uptime
 lsnrctl status
@@ -197,7 +197,7 @@ select * from v$database;
 ### Creating Datapump Directory
 
 1. Create OS-level directory:
-   ```sh
+   ```sql
    mkdir -p /u/dp_exp_dir
    ```
 
@@ -213,7 +213,7 @@ select * from v$database;
    ```
 
 4. Get help on `expdp` or `impdp` utility:
-   ```sh
+   ```sql
    expdp help=y
    impdp help=y
    ```
@@ -223,80 +223,80 @@ select * from v$database;
 #### Table Level
 
 1. Export:
-   ```sh
+   ```sql
    expdp directory=datapump dumpfile=emp_bkp.dmp logfile=emp_bkp.log tables='SCOTT.EMP'
    ```
 
 2. Import:
-   ```sh
+   ```sql
    impdp directory=datapump dumpfile=emp_bkp.dmp logfile=imp_emp.log tables='EMP'
    ```
 
 3. Import to another schema:
-   ```sh
+   ```sql
    impdp directory=datapump dumpfile=emp_bkp.dmp logfile=imp_emp.log tables='EMP' remap_schema='SCOTT:HR'
    ```
 
 4. Import to another tablespace:
-   ```sh
+   ```sql
    impdp directory=datapump dumpfile=emp_bkp.dmp logfile=imp_emp.log tables='EMP' remap_schema='SCOTT:HR' remap_tablespace='USERS:MYTBS'
    ```
 
 5. Import with a different name:
-   ```sh
+   ```sql
    impdp directory=datapump dumpfile=emp_bkp.dmp logfile=imp_emp.log tables='EMP' remap_table='SCOTT.EMP:HR.EMPLOYEE'
    ```
 
 6. Import only rows:
-   ```sh
+   ```sql
    impdp directory=datapump dumpfile=emp_bkp.dmp logfile=imp_emp.log tables='EMP' content=DATA_ONLY
    ```
 
 #### Schema Level
 
 1. Export:
-   ```sh
+   ```sql
    expdp directory=datapump dumpfile=scott_bkp.dmp logfile=scott_bkp.log schemas='SCOTT'
    ```
 
 2. Import to the same schema:
-   ```sh
+   ```sql
    impdp directory=datapump dumpfile=scott_bkp.dmp logfile=imp_schema.log remap_schema='SCOTT:SCOTT'
    ```
 
 3. Import to a different schema:
-   ```sh
+   ```sql
    impdp directory=datapump dumpfile=scott_bkp.dmp logfile=imp_schema.log remap_schema='SCOTT:HR'
    ```
 
 #### Row Level
 
 1. Export:
-   ```sh
+   ```sql
    expdp directory=datapump dumpfile=emprows_bkp.dmp logfile=emprows_bkp.log tables='SCOTT.EMP' query="where deptno="
    ```
 
 2. Import:
-   ```sh
+   ```sql
    impdp directory=datapump dumpfile=emprows_bkp.dmp logfile=imp_emprows.log tables='SCOTT.EMP'
    ```
 
 #### Database Level
 
 1. Export:
-   ```sh
+   ```sql
    expdp directory=datapump dumpfile=fullprod.dmp logfile=fullprod.log full=y
    ```
 
 2. Import:
-   ```sh
+   ```sql
    impdp directory=datapump dumpfile=fullprod.dmp logfile=imp_fullprod.log full=y
    ```
 
 ### Data Pump Import over Network
 
 1. Create a TNS entry in `tnsnames.ora`:
-   ```sh
+   ```sql
    devdb = 
    (DESCRIPTION = 
      (ADDRESS_LIST = 
@@ -314,12 +314,12 @@ select * from v$database;
    ```
 
 3. Import using the database link:
-   ```sh
+   ```sql
    impdp directory=MY_DUMP_DIR LOGFILE=dblink_transfer.log network_link=SOURCE_DB remap_schema=scott:hr
    ```
 
 4. Import multiple schemas:
-   ```sh
+   ```sql
    impdp sys directory=MY_DUMP_DIR LOGFILE=dblink_transfer.log network_link=SOURCE_DB schemas=IJS,scott,hr
    ```
 
@@ -332,7 +332,7 @@ select * from v$database;
 ### Export Using PAR File
 
 1. Create a PAR file:
-   ```sh
+   ```sql
    vi exp.par
    ```
 
@@ -346,18 +346,18 @@ select * from v$database;
    ```
 
 2. Call the PAR file:
-   ```sh
+   ```sql
    expdp parfile=exp.par
    ```
 
 ### Schedule Data Pump Export in Crontab
 
 1. Create a script:
-   ```sh
+   ```sql
    vi daily_export.sh
    ```
 
-   ```sh
+   ```sql
    export DATE=$(date +%m_%d_%y_%H_%M)
    export ORACLE_SID=orcl
    export ORACLE_HOME=/u/app/oracle/product/../db_
@@ -365,16 +365,16 @@ select * from v$database;
    ```
 
 2. Give execute permissions:
-   ```sh
+   ```sql
    chmod +x daily_export.sh
    ```
 
 3. Schedule in crontab:
-   ```sh
+   ```sql
    crontab -e -u oracle
    ```
 
-   ```sh
+   ```sql
    */30 * * * * /home/oracle/backup_script
    ```
 
@@ -389,7 +389,7 @@ select * from v$database;
 
 ### RMAN Commands
 
-```sh
+```sql
 rman target /
 rman> report
 
@@ -425,14 +425,14 @@ alter database open;
 
 ### Datapump
 
-```sh
+```sql
 expdp scott/tiger@orcl directory=dp dumpfile=scott.dmp logfile=scott.log full=y
 impdp scott/tiger@orcl directory=dp dumpfile=scott.dmp logfile=scott.log full=y
 ```
 
 ### ASM
 
-```sh
+```sql
 asmcmd lsdg
 asmcmd lsdsk
 asmcmd ls / +DATA +FRA +REDO
@@ -442,21 +442,21 @@ asmcmd ls / +DATA +FRA +REDO
 
 ### Checking Cluster Status
 
-```sh
+```sql
 crsctl check crs
 crsctl check cluster -all
 ```
 
 ### Starting/Stopping Cluster
 
-```sh
+```sql
 crsctl start crs
 crsctl stop crs
 ```
 
 ### Node Management
 
-```sh
+```sql
 srvctl start nodeapps -n <node_name>
 srvctl stop nodeapps -n <node_name>
 ```
@@ -497,7 +497,7 @@ srvctl stop nodeapps -n <node_name>
 
 ### Checking Patch Levels
 
-```sh
+```sql
 opatch lsinventory
 ```
 
@@ -505,12 +505,12 @@ opatch lsinventory
 
 1. Download patch from Oracle support
 2. Extract patch:
-   ```sh
+   ```sql
    unzip p<patch_number>_<version>_<os>.zip
    ```
 
 3. Apply patch:
-   ```sh
+   ```sql
    cd <patch_directory>
    opatch apply
    ```
@@ -526,19 +526,19 @@ opatch lsinventory
 
 1. Configure primary and standby databases
 2. Set up data guard broker:
-   ```sh
+   ```sql
    dgmgrl sys/password
    add database <standby_db> as connect identifier is '<db_service>' maintained as physical;
    ```
 3. Enable data guard:
-   ```sh
+   ```sql
    enable configuration;
    ```
 
 ### Monitoring Data Guard
 
 - Use `DGMGRL` commands:
-  ```sh
+  ```sql
   show configuration;
   show database <db_name>;
   show database verbose <db_name>;
@@ -568,7 +568,7 @@ opatch lsinventory
 
 ----------------------------------------------------------------------
 
-```sh
+```sql
 -- ## desc all_sequences
 
 CREATE TABLE employees_afsar (
@@ -1537,13 +1537,10 @@ If you have specific questions or need examples for any function type, feel free
       ```sql
       DROP FUNCTION function_name;
       ```
-
+```sql
 This list covers the essential SQL clauses used for querying, managing, and manipulating data in relational databases.
 Each clause has its specific use case and syntax, which may vary slightly depending on the SQL dialect (e.g., MySQL, PostgreSQL, Oracle SQL).
 If you need further explanations or examples for any specific clause, feel free to ask!
-
-===============================================================================================================================
-===============================================================================================================================
 
 CREATE USER new_schema1 IDENTIFIED BY password
 DEFAULT TABLESPACE users
@@ -2400,6 +2397,7 @@ SELECT name, value
 FROM v$parameter
 ORDER BY name;
 
+```sql
 SHOW PARAMETER control_files;
 SHOW PARAMETER db_name;
 SHOW PARAMETER instance_name;
@@ -2693,7 +2691,9 @@ ALTER PLUGGABLE DATABASE pdb_name OPEN;
 
 
 @ C:\Oracle\WINDOWS.X64_193000_db_home\rdbms\xml\schema\db-sample-schemas-21.1\human_resources\hr_main.sql
+```
 
+```sql
 -- PDBS conncet and conncet wtih schema means users;
 
 # Connect to the CDB as SYSDBA
@@ -2707,15 +2707,11 @@ ALTER USER hr IDENTIFIED BY new_password;
 
 # Verify the password change by connecting as `hr` with the new password
 CONNECT hr/new_password@pdbtest;
-
-===============================================================================================================================
 ```
+===============================================================================================================================
 --------------------------------------------------------------------------------------------------------
 
-```sh
-
-
- 
+```sql
  
  ORACLE OBA ADMIN - SHEAT SHEET 
  ==================================================================================== 
@@ -2975,8 +2971,8 @@ The data is transferred from one database to another over network
 devdb) 
  On target, we need to create a database link using the TNS entry created above 
  
- create database link SOURCE_DB connect to scott identified by tiger using 'devdb'; 
- 
+ create database link SOURCE_DB connect to scott identified by tiger using 'devdb';
+
  Database link created. 
  It's time to import source schema on target database via db link. Run below command 
 on target database to start import 
@@ -3064,7 +3060,7 @@ TOTALWORK !=  AND SOFAR <> TOTALWORK;
  cloning of database .. . 
  restore database, recover, backup, full backup, incremental backup. 
  
- -------------------  RMAN --
+ -------------------  RMAN -------------------
  
  conncet target/ enter 
  Rman> report schema; 
@@ -3080,11 +3076,7 @@ database in archive log mode
  Hot backup= should be up and running mode 
  cold backup= in cold backup datbase should be down 
  
- 
- 
  logical backup 
- 
- 
  
  Oracle Export 
  ====================== 
@@ -3100,10 +3092,8 @@ tables='SCOTT.EMP', 'SCOTT.DEP' , .. •
  )To take row level export 
  $ exp file=/u/emp_rows_bkp.dmp log=/u/emp_rows.log tables='SCOTT.EMP• 
 query=\"where deptno=\ " 
- 
- scp file.dmp oracle@...:file_location 
- 
- 
+scp file.dmp oracle@...:file_location 
+
  Oracle Import 
  ====================== 
  l)To know options of import 
@@ -3118,13 +3108,10 @@ touser='SCOTT•
 tables='EMP' 
  )To import a table to another user 
  $ imp file=/u/emp_bkp.dmp log=/u/imp_emp.log fromuser='SCOTT' touser='SYSTEM' 
-tables='EMP' 
- 
- ---------------------------------  
- 
- 
+tables='EMP'
+---------------------------------  
 Roles,User,Profile Management 
- Oracle User Management 
+Oracle User Management 
  --------------------------  l)To check all users inside database : 
  SQL> select username, account_status, default_tablespace from dba_users; 
  
@@ -3422,7 +3409,7 @@ right now, coalesce will do it
 ```
 ------------------------------------------------------------------------------------------
 
-```sh
+```sql
 ### Method 1: Adding a New Datafile
 To extend the tablespace size in an Oracle database, you typically need to add a new datafile to the tablespace or increase the size of an existing datafile. Here are the steps to achieve both methods:
 
