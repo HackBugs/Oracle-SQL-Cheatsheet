@@ -53,6 +53,7 @@
 | `dg4pwd`          | Data Guard passwords ke configuration ko manage karta hai. |
 | `diagsetup`       | Diagnostic tools ka setup karta hai. |
 | `diskmon.bin`     | Disk monitoring tool for ASM and Cluster. |
+| `dgmgrl`         | Oracle Data Guard ke management ke liye command-line tool. Yeh tool primary aur standby databases ke beech synchronization ko manage karta hai, aur Data Guard configurations ko setup aur monitor karta hai.. |
 | `drdactl`         | Disaster Recovery Data Guard configuration manage karta hai. |
 | `drdalsnr`        | Disaster Recovery Data Guard ke liye listener configuration. |
 | `dropjava`        | Oracle Database se Java classes ko drop karta hai. |
