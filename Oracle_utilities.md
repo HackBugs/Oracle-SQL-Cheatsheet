@@ -1,4 +1,7 @@
 
+```sh
+tnsping ORADB -- you can use your db name here my db name is oradb
+```
 
 > Complete list of Oracle utilities you provided, along with a description of why each is used, explained in simple Hinglish.
 
