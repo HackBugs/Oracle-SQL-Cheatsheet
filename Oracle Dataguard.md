@@ -1,6 +1,6 @@
 ## Oracle Data Gurad
 
-StandBy CMD 
+Standby CMD 
 > ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE;
 
 Bilkul, main aapko Oracle Data Guard ke setup ke process ko ek beginner ke liye step-by-step batata hoon. Oracle Data Guard aapke primary database ka ek standby copy banata hai jo disaster recovery aur high availability ke liye use hota hai.
