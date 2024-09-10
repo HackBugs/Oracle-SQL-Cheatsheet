@@ -170,6 +170,107 @@ Data Guard setup ke dauran redo log files primary aur standby databases ke beech
 
 <hr>
 
+Oracle Data Guard setup ke dauran, primary aur standby databases ke beech communication ke liye connection information ko configure karna padta hai. Is configuration ko typically `listener.ora`, `tnsnames.ora`, aur `spfile`/`init.ora` files mein kiya jata hai. 
+
+### Connection Configuration for Data Guard
+
+**1. `listener.ora` File:**
+
+- **Purpose:** Listener service ko configure karne ke liye, jo client requests aur database connections handle karta hai.
+- **Location:** `$ORACLE_HOME/network/admin/listener.ora`
+
+**Example Configuration:**
+
+Primary aur standby databases ke liye listener setup kiya jata hai. 
+
+**Primary Database:**
+```plaintext
+LISTENER =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = primary_db_host)(PORT = 1521))
+  )
+```
+
+**Standby Database:**
+```plaintext
+LISTENER =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = standby_db_host)(PORT = 1521))
+  )
+```
+
+**2. `tnsnames.ora` File:**
+
+- **Purpose:** Oracle database services ko describe karne ke liye, jisse clients aur databases ke beech connection establish hota hai.
+- **Location:** `$ORACLE_HOME/network/admin/tnsnames.ora`
+
+**Example Configuration:**
+
+Ye file mein primary aur standby databases ke connection details specify kiye jate hain.
+
+**Primary Database:**
+```plaintext
+PRIMARY_DB =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = primary_db_host)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = primary_db_service)
+    )
+  )
+```
+
+**Standby Database:**
+```plaintext
+STANDBY_DB =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = standby_db_host)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = standby_db_service)
+    )
+  )
+```
+
+**3. `spfile` / `init.ora` File:**
+
+- **Purpose:** Database initialization parameters ko configure karne ke liye, jo database startup aur operation settings specify karte hain.
+- **Location:** `$ORACLE_HOME/dbs/spfile` ya `$ORACLE_HOME/dbs/init.ora`
+
+**Example Configuration:**
+
+**Primary Database:**
+```sql
+LOG_ARCHIVE_DEST_1='LOCATION=/u01/app/oracle/archivelog'
+LOG_ARCHIVE_DEST_2='SERVICE=STANDBY_DB ASYNC'
+FAL_SERVER=STANDBY_DB
+FAL_CLIENT=PRIMARY_DB
+```
+
+**Standby Database:**
+```sql
+LOG_ARCHIVE_DEST_1='LOCATION=/u01/app/oracle/archivelog'
+LOG_ARCHIVE_DEST_2='SERVICE=PRIMARY_DB'
+FAL_SERVER=PRIMARY_DB
+FAL_CLIENT=STANDBY_DB
+```
+
+**Key Parameters:**
+- `LOG_ARCHIVE_DEST_n`: Redo logs ko archive aur ship karne ke liye specify karta hai.
+- `FAL_SERVER` aur `FAL_CLIENT`: Failed Archive Log (FAL) service settings jo redo log files ki recovery ko facilitate karte hain.
+
+### Summary
+
+- **`listener.ora`** file listener services ko configure karti hai jo database connections handle karte hain.
+- **`tnsnames.ora`** file databases ke connection details ko define karti hai.
+- **`spfile` / `init.ora`** file database initialization parameters ko set karti hai jo Data Guard replication aur archiving ke liye zaroori hain.
+
+In files ko properly configure karke, aap primary aur standby databases ke beech proper communication aur synchronization ensure kar sakte hain.
+
+<hr>
+
 Agar aapne Oracle Data Guard ka setup kar liya hai aur VirtualBox pe machines chal rahi hain, to aapko kuch steps follow karne honge taaki check kar sakein ki Data Guard properly kaam kar raha hai ya nahi. Data Guard do machines ke beech mein ek Primary Database aur ek Standby Database ka synchronization manage karta hai.
 
 Yeh raha step-by-step process:
