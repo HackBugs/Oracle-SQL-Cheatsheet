@@ -2,6 +2,8 @@
 - Author : HackBugs , Shahnwaj Aalam
 **ORACLE OBA ADMIN - SHEAT SHEET**
 - https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SESSION.html#GUID-28E2DC75-E157-4C0A-94AB-117C205789B9
+
+[DBA_Class](https://hackbugs.github.io/Oracle_Webiste_Script/)
 ---
 
 **RMAN Backup:**
