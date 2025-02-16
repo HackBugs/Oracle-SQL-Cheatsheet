@@ -1,5 +1,5 @@
 > # Oracle Database 19c Primary and Physical Standby databases
-
+> WebLogic Tuxedo
 
 ## Primary databases
 ```
