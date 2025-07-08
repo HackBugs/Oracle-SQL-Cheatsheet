@@ -17,4 +17,10 @@ report schema;
 
 SHOW PARAMETER db_recovery_file_dest;
 LIST BACKUP;
+
+v$managed_standby
+
+@?/rdbms/admin/awrrpt.sql
+@?/rdbms/admin/addmrpt.sql
+@$ORACLE_HOME/rdbms/admin/awrrpt.sql
 ```
