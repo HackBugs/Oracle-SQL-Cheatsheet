@@ -1,5 +1,7 @@
 
 ```
+gedit
+
 hostname -I
 sqlplus / as sysdba
 startup
