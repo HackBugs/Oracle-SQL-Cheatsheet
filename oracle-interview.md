@@ -11,3 +11,6 @@ cat $ORACLE_HOME/network/admin/tnsnames.ora
 SELECT username, account_status FROM dba_users;
 ALTER USER system IDENTIFIED BY admin;
 ```
+
+
+LIST BACKUP;
