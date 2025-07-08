@@ -1,6 +1,7 @@
 
 ```
 gedit
+SELECT NAME, VALUE FROM V$DIAG_INFO; // log path find
 
 hostname -I
 sqlplus / as sysdba
