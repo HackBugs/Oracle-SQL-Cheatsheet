@@ -1,4 +1,10 @@
 
+Name - testdb
+Username - system
+Hostname - 192.168.1.124
+Port - 1521
+Service name - oradb.localdomain
+
 ```
 gedit
 SELECT NAME, VALUE FROM V$DIAG_INFO; // log path find
