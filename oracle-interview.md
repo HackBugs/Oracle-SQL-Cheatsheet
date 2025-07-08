@@ -7,7 +7,8 @@ Service name - oradb.localdomain
 ```
 
 ```
-gedit
+gedit // Text editor
+
 SELECT NAME, VALUE FROM V$DIAG_INFO; // log path find
 
 hostname -I
