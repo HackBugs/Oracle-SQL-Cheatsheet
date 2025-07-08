@@ -12,5 +12,8 @@ SELECT username, account_status FROM dba_users;
 ALTER USER system IDENTIFIED BY admin;
 ```
 
+rman target /
+report schema;
 
+SHOW PARAMETER db_recovery_file_dest;
 LIST BACKUP;
