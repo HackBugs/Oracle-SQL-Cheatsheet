@@ -622,4 +622,57 @@ SELECT name, value FROM v$sysstat WHERE name LIKE '%CPU%';
 4. **Stay Updated**: Oracle 19c/21c ke new features revise karo.
 5. **STAR Method**: Behavioral questions mein use karo.
 
+<hr>
+
+
+> # **complete list of Linux commands** for Oracle Linux or Linux system par **ports aur services check karne ke liye** also useful for **Oracle DBA**, **SysAdmin**, ya **DevOps** roles.
+
+---
+
+## ✅ **Linux Commands to Check Port and Services** (with use)
+
+| **Command**                       | **Purpose / Use**                                                              |                                         |
+| --------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------- |
+| `netstat -tulnp`                  | Show all **listening ports** with **process info** (TCP + UDP)                 |                                         |
+| `ss -tulnp`                       | Faster version of `netstat`, shows same info                                   |                                         |
+| `lsof -i :1521`                   | Check **which process is using port 1521** (replace with any port)             |                                         |
+| `lsof -iTCP -sTCP:LISTEN -Pn`     | List all **TCP listening ports** with process name and PID                     |                                         |
+| `nmap -sT -O localhost`           | Scan all **open ports** on localhost (you can replace with IP too)             |                                         |
+| \`ps -ef                          | grep tnslsnr\`                                                                 | Check if **Oracle listener** is running |
+| `lsnrctl status`                  | Show listener’s current status, port, services, etc.                           |                                         |
+| `systemctl status firewalld`      | Check if **firewall is enabled or blocking any ports**                         |                                         |
+| `firewall-cmd --list-all`         | Show open ports in **firewalld**                                               |                                         |
+| `iptables -L -n -v`               | List all rules if `iptables` is used                                           |                                         |
+| `hostname -I` or `ip a`           | Check your **system IP address**                                               |                                         |
+| `curl -v telnet://localhost:1521` | Try to connect to port 1521 to check if it’s open from inside                  |                                         |
+| `telnet localhost 1521`           | Check if listener port is **accepting connections** (telnet must be installed) |                                         |
+| `nc -zv 127.0.0.1 1521`           | Use **netcat** to check if port is open (more modern than telnet)              |                                         |
+| `whoami`                          | Check current user (to verify if logged in as `oracle` user)                   |                                         |
+
+---
+
+## 🧠 Most Commonly Used in Oracle DBA Work:
+
+| **Task**                     | **Recommended Command**             |                |
+| ---------------------------- | ----------------------------------- | -------------- |
+| Listener running or not      | \`ps -ef                            | grep tnslsnr\` |
+| Listener status              | `lsnrctl status`                    |                |
+| Check 1521 port open         | `lsof -i :1521` or `netstat -tulnp` |                |
+| Find what runs on which port | `ss -tulnp`                         |                |
+| Check DB instance logs       | `tail -f alert_oradb.log`           |                |
+
+---
+
+### ✅ Bonus (install if needed):
+
+| Tool        | Install Command (Oracle Linux)       |
+| ----------- | ------------------------------------ |
+| `nmap`      | `sudo yum install nmap -y`           |
+| `telnet`    | `sudo yum install telnet -y`         |
+| `net-tools` | `sudo yum install net-tools -y`      |
+| `lsof`      | Usually pre-installed (`which lsof`) |
+| `nc`        | `sudo yum install nmap-ncat -y`      |
+
+---
+
 
