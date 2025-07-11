@@ -625,7 +625,7 @@ SELECT name, value FROM v$sysstat WHERE name LIKE '%CPU%';
 <hr>
 
 
-> # **complete list of Linux commands** for Oracle Linux or Linux system par **ports aur services check karne ke liye** also useful for **Oracle DBA**, **SysAdmin**, ya **DevOps** roles.
+> # Complete list of Linux commands** for Oracle Linux or Linux system par **ports aur services check karne ke liye** also useful for **Oracle DBA**, **SysAdmin**, ya **DevOps** roles.
 
 ---
 
