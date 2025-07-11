@@ -9,6 +9,8 @@
 - Check db_name aur instance_name
 SELECT name FROM v$database;
 SELECT instance_name FROM v$instance;
+
+/u01/app/oracle/diag/rdbms/<db_name>/<instance_name>/alert/alert_<instance_name>.log
 ```
 
 | Purpose                         | File Path                                                       |
