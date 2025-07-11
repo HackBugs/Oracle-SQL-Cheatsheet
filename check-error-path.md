@@ -26,7 +26,7 @@ cat /u01/app/oracle/diag/rdbms/oradb/oradb/alert/log.xml
 
 ---
 
-## ✅ Oracle DBA Important Paths Table (with Purpose)
+> # ✅ Oracle DBA Important Paths Table (with Purpose)
 
 | **Purpose** (with Hint)                          | **Path / File Location**                                                          | **Description** |
 |--------------------------------------------------|-----------------------------------------------------------------------------------|-----------------|
@@ -76,6 +76,152 @@ Aap confidently batao:
 
 > "Main sabse pehle listener log (`log.xml`), alert log (`alert_<sid>.log`), listener.ora, tnsnames.ora files ko check karunga. Agar zarurat pade to trace files aur firewall/network config bhi check karunga."
 
+<hr>
+
+> # Oracle ka **alert log file** sabse important diagnostic file hai — iska use **Oracle DBA har din karta hai** to troubleshoot errors, track startup/shutdown, aur background events.
+
 ---
+
+## 📄 **`alert_oradb.log` me kya kya check kar sakte hain?**
+
+### 🔍 1. **Instance Startup & Shutdown**
+
+* Kab database start/shutdown hua?
+* Kya koi error aaya startup ke waqt?
+
+🧾 Example:
+
+```
+Starting ORACLE instance (normal)
+ORACLE instance started.
+Total System Global Area  1073741824 bytes
+Database mounted.
+Database opened.
+```
+
+---
+
+### 🔍 2. **Listener Registration Issues**
+
+* Agar instance listener ke saath register nahi ho raha, toh alert log me dikhega.
+
+🧾 Example:
+
+```
+PMON started with pid=2, OS id=12345
+Starting background process CJQ0
+Failed to contact listener. Error: ORA-12541: TNS:no listener
+```
+
+---
+
+### 🔍 3. **Errors & Warnings (ORA-xxxx)**
+
+* Sabhi major **ORA- errors** alert log me capture hote hain.
+
+🧾 Example:
+
+```
+ORA-00600: internal error code
+ORA-01578: block corrupted
+ORA-19809: limit exceeded for recovery files
+```
+
+---
+
+### 🔍 4. **Tablespace Issues**
+
+* Agar koi tablespace full ho gaya ho ya autoextend fail ho gaya ho.
+
+🧾 Example:
+
+```
+Errors in file /.../ora_1234.trc:
+ORA-01653: unable to extend table USERS in tablespace USERS
+```
+
+---
+
+### 🔍 5. **Archiver Status**
+
+* Archive log on/off ka status, aur archiver failures bhi.
+
+🧾 Example:
+
+```
+ARC0: Completed archiving
+ORACLE Instance ORADB - Archiver hung
+```
+
+---
+
+### 🔍 6. **Checkpoint & Recovery Events**
+
+* Checkpoint details, redo apply, media recovery.
+
+🧾 Example:
+
+```
+Media Recovery Start
+Media Recovery Log /path/to/archivelog1.arc
+```
+
+---
+
+### 🔍 7. **Background Process Failures**
+
+* Agar koi internal process (PMON, SMON, LGWR) crash ho gaya ho.
+
+🧾 Example:
+
+```
+SMON: cleaning temp segments
+DBW0: terminating due to error 600
+```
+
+---
+
+### 🔍 8. **Parameter Changes (ALTER SYSTEM)**
+
+* Agar kisi ne `ALTER SYSTEM` command diya ho to wo bhi show hota hai.
+
+🧾 Example:
+
+```
+ALTER SYSTEM SET db_recovery_file_dest_size=10G SCOPE=BOTH;
+```
+
+---
+
+### 🔍 9. **PDB (Pluggable DB) Open/Close Status** *(if using multitenant)*
+
+🧾 Example:
+
+```
+Pluggable database PDB1 opened read write
+```
+
+---
+
+### ✅ Interview ke liye Ek Line Summary:
+
+> "Alert log file me main startup/shutdown, listener registration, background process failures, ORA errors, archiver issues, aur tablespace related problems jaise sab kuch monitor karta hoon. Ye file troubleshooting ka first step hoti hai."
+
+---
+
+### 📌 File Path Reminder:
+
+```
+/u01/app/oracle/diag/rdbms/oradb/oradb/alert/alert_oradb.log
+```
+
+Check karne ke liye:
+
+```bash
+tail -f /u01/app/oracle/diag/rdbms/oradb/oradb/alert/alert_oradb.log
+```
+
+---
+
 
 
