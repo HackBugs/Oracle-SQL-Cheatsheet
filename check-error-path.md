@@ -13,6 +13,9 @@ SELECT instance_name FROM v$instance;
 /u01/app/oracle/diag/rdbms/<db_name>/<instance_name>/alert/alert_<instance_name>.log
 - Example
 /u01/app/oracle/diag/rdbms/oradb/oradb/alert/alert_oradb.log
+
+- Check error inside also 
+cat /u01/app/oracle/diag/rdbms/oradb/oradb/alert/log.xml
 ```
 
 | Purpose                         | File Path                                                       |
