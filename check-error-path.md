@@ -5,6 +5,10 @@
 
  - Listener Log Location
 /u01/app/oracle/diag/tnslsnr/srv1/listener/alert/
+
+- Check db_name aur instance_name
+SELECT name FROM v$database;
+SELECT instance_name FROM v$instance;
 ```
 
 | Purpose                         | File Path                                                       |
