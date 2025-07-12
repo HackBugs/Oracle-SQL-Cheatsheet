@@ -1,6 +1,15 @@
 
 ```
 find /$ORACLE_HOME -name 'tnsnames.ora'
+//u01/app/oracle/product/19.0.0/db_1/network/admin/samples/tnsnames.ora
+//u01/app/oracle/product/19.0.0/db_1/network/admin/tnsnames.ora
+
+find /$ORACLE_HOME -name 'awrrpt.sql'
+//u01/app/oracle/product/19.0.0/db_1/rdbms/admin/awrrpt.sql
+
+find /$ORACLE_HOME -name 'listener.ora'
+//u01/app/oracle/product/19.0.0/db_1/network/admin/samples/listener.ora
+//u01/app/oracle/product/19.0.0/db_1/network/admin/listener.ora
 ```
 
 बहुत बढ़िया! आपने Oracle Interview के लिए काफी practical बातें और real-life experience share किया है। अब मैं इसे अच्छी तरह **organize** कर देता हूँ ताकि आप इसे इंटरव्यू में confidently और professional तरीके से बता सको।
