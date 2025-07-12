@@ -166,3 +166,100 @@ CREATE INDEX idx_salary ON employee(salary);
 | Real-World Scenario     | Slow system → AWR → SQL tune → performance fix |
 
 ---
+
+> # Bonus: Ek Format Command Pack (SQL*Plus ke liye)
+
+```
+SET LINESIZE 200;
+SET PAGESIZE 100;
+SET TRIMSPOOL ON;
+SET FEEDBACK OFF;
+
+COLUMN sid FORMAT 9999;
+COLUMN serial# FORMAT 99999;
+COLUMN username FORMAT A15;
+COLUMN sql_id FORMAT A13;
+COLUMN event FORMAT A40;
+COLUMN sql_text FORMAT A60;
+COLUMN program FORMAT A30;
+```
+
+Bilkul! Niche maine aapko **ready-to-use SQL queries** de di hain jo aap Oracle 19c database me direct run karke **performance check**, **active sessions**, **top SQLs**, **wait events** jaise sab details dekh sakte ho.
+
+---
+
+## ✅ **1. V\$SQL → Top SQLs by CPU Usage**
+
+```sql
+SELECT *
+FROM (
+  SELECT sql_text, sql_id, executions, cpu_time, elapsed_time
+  FROM v$sql
+  WHERE executions > 0
+  ORDER BY cpu_time DESC
+)
+WHERE ROWNUM <= 10;
+```
+
+> # 🔍 **Purpose:** Ye top 10 SQL queries dikhayega jo sabse zyada CPU use kar rahi hain.
+
+---
+
+## ✅ **2. V\$SESSION → Active Sessions (Current Logged-in Sessions)**
+
+```sql
+SELECT sid, serial#, username, status, osuser, machine, program, sql_id
+FROM v$session
+WHERE status = 'ACTIVE'
+AND username IS NOT NULL;
+```
+
+🔍 **Purpose:** Ye currently active (running) sessions ko dikhata hai.
+
+---
+
+## ✅ **3. V\$PROCESS → Background aur Foreground Processes**
+
+```sql
+SELECT p.pid, p.spid, s.sid, s.serial#, s.username, s.program
+FROM v$process p
+JOIN v$session s ON p.addr = s.paddr
+WHERE s.username IS NOT NULL;
+```
+
+🔍 **Purpose:** Ye query Oracle ke **foreground** (user sessions) aur **background** processes ke mapping dikhata hai.
+
+---
+
+## ✅ **4. V\$EVENT → Wait Events (Wait hone wali cheezein)**
+
+```sql
+SELECT event, total_waits, time_waited, average_wait
+FROM v$system_event
+WHERE event NOT LIKE 'SQL*Net message%'
+ORDER BY time_waited DESC;
+```
+
+🔍 **Purpose:** Ye dikhata hai ki system me kis operation pe wait zyada ho raha hai (I/O, latch, lock, etc.)
+
+---
+
+## ✅ Bonus: **Check Top SQL by Elapsed Time (Slow queries)**
+
+```sql
+SELECT sql_id, sql_text, elapsed_time, executions
+FROM v$sql
+WHERE executions > 0
+ORDER BY elapsed_time DESC
+FETCH FIRST 5 ROWS ONLY;
+```
+
+---
+
+## ✅ Bonus: **Check Session Waits in Real-time**
+
+```sql
+SELECT sid, event, wait_class, seconds_in_wait, state
+FROM v$session_wait
+WHERE wait_class != 'Idle';
+```
