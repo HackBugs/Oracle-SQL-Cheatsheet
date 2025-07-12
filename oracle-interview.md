@@ -1,3 +1,8 @@
+
+```
+find /$ORACLE_HOME -name 'tnsnames.ora'
+```
+
 बहुत बढ़िया! आपने Oracle Interview के लिए काफी practical बातें और real-life experience share किया है। अब मैं इसे अच्छी तरह **organize** कर देता हूँ ताकि आप इसे इंटरव्यू में confidently और professional तरीके से बता सको।
 
 ---
