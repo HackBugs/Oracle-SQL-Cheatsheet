@@ -343,7 +343,7 @@ order by total_free_pct;
 </details>
 
 <details>
-     <summary><h2></h2><b>3. Complete Oracle Database Health Check Script</b></summary>
+     <summary><h2><b>3. Complete Oracle Database Health Check Script</b></summary>
     
 ```
 PROMPT
@@ -956,7 +956,7 @@ SPOOL OFF
 </details>
 
 <details>
-     <summary><h2></h2><b>5. Oracle 19c Database Configuration & Path Details Script</b></summary>
+     <summary><h2><b>5. Oracle 19c Database Configuration & Path Details Script</b></summary>
 
 ```
 -- =====================================================
