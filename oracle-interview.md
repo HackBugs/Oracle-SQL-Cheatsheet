@@ -277,3 +277,354 @@ SELECT sid, event, wait_class, seconds_in_wait, state
 FROM v$session_wait
 WHERE wait_class != 'Idle';
 ```
+
+> # Oracle DBA ka **daily shift handover** ya **EOD (End of Day) checklist** 
+
+---
+
+## ✅ **Daily DBA Checklist – Shift Over Hone Se Pehle**
+
+Yeh checklist banayi gayi hai **production Oracle DB** ke liye – RAC, Data Guard, RMAN, Jobs, etc. ke hisaab se:
+
+---
+
+### 🔸 1. **Check Alert Log (For Errors)**
+
+```sql
+SELECT 
+    TO_CHAR(originating_timestamp, 'DD-MON-YYYY HH24:MI:SS') AS TIME,
+    message_text AS ALERT
+FROM v$diag_alert_ext
+WHERE originating_timestamp >= SYSDATE - 1
+  AND message_text LIKE 'ORA-%'
+ORDER BY originating_timestamp DESC;
+```
+
+📌 Ya Linux se:
+
+```bash
+tail -50 $ORACLE_BASE/diag/rdbms/<db>/<inst>/trace/alert_<inst>.log
+```
+
+---
+
+### 🔸 2. **Check RMAN Backups (Last 24 Hours)**
+
+```sql
+SELECT 
+    TO_CHAR(start_time, 'DD-MON HH24:MI') AS START_TIME,
+    TO_CHAR(end_time, 'DD-MON HH24:MI') AS END_TIME,
+    status, input_type, round(output_bytes/1024/1024,2) AS SIZE_MB
+FROM v$rman_backup_job_details
+WHERE start_time >= SYSDATE - 1
+ORDER BY start_time DESC;
+```
+
+---
+
+### 🔸 3. **Check Tablespace Usage**
+
+```sql
+SELECT 
+    tablespace_name,
+    ROUND((total_space - free_space), 2) AS USED_MB,
+    ROUND(free_space, 2) AS FREE_MB,
+    ROUND((free_space / total_space) * 100, 2) AS FREE_PERCENT
+FROM (
+    SELECT df.tablespace_name,
+           SUM(df.bytes) / 1024 / 1024 AS total_space,
+           SUM(f.bytes) / 1024 / 1024 AS free_space
+    FROM dba_data_files df
+    JOIN dba_free_space f USING (tablespace_name)
+    GROUP BY df.tablespace_name
+)
+ORDER BY FREE_PERCENT;
+```
+
+📌 Alert if FREE\_PERCENT < 20%
+
+---
+
+### 🔸 4. **Check Listener Status**
+
+```bash
+lsnrctl status
+```
+
+Check for:
+
+* Services registered
+* Connection errors
+* Listener uptime
+
+---
+
+### 🔸 5. **Check RAC Health (If RAC is used)**
+
+```bash
+crsctl check crs
+crsctl stat res -t
+```
+
+Check:
+
+* Node status
+* Resource online/offline
+* Interconnect status
+
+---
+
+### 🔸 6. **Check Data Guard Sync Status (If DG is used)**
+
+#### 🔁 On Standby:
+
+```sql
+SELECT thread#, MAX(sequence#) "Last Received"
+FROM v$archived_log
+WHERE applied='NO'
+GROUP BY thread#;
+
+SELECT sequence#, applied FROM v$archived_log
+ORDER BY sequence# DESC FETCH FIRST 10 ROWS ONLY;
+```
+
+#### 🔗 On Primary:
+
+```sql
+SELECT DEST_ID, STATUS, ERROR FROM V$ARCHIVE_DEST WHERE STATUS != 'INACTIVE';
+```
+
+📌 Alert if GAP exists.
+
+---
+
+### 🔸 7. **Check Job Scheduler Status (DBMS\_SCHEDULER)**
+
+```sql
+SELECT 
+    job_name, state, TO_CHAR(last_start_date, 'DD-MON HH24:MI') AS LAST_RUN,
+    TO_CHAR(next_run_date, 'DD-MON HH24:MI') AS NEXT_RUN
+FROM dba_scheduler_jobs
+WHERE enabled = 'TRUE';
+```
+
+📌 Check for `FAILED` jobs:
+
+```sql
+SELECT * FROM dba_scheduler_job_run_details
+WHERE status != 'SUCCEEDED'
+  AND log_date >= SYSDATE - 1
+ORDER BY log_date DESC;
+```
+
+---
+
+### 🧾 **Extra Recommended Checks (Optional but Useful)**
+
+| Task                 | Command                                                               |
+| -------------------- | --------------------------------------------------------------------- |
+| FRA Space Usage      | `SELECT * FROM v$recovery_file_dest;`                                 |
+| ASM Diskgroup Health | `SELECT * FROM v$asm_diskgroup;`                                      |
+| Invalid Objects      | `SELECT object_name, status FROM dba_objects WHERE status='INVALID';` |
+| Blocking Sessions    | `SELECT * FROM v$session WHERE blocking_session IS NOT NULL;`         |
+| Archive Log Gap      | `SELECT * FROM v$archive_gap;`                                        |
+
+---
+
+## ✅ **How to Use It Daily**
+
+1. Save all queries in one file: `dba_daily_check.sql`
+2. Login:
+
+```bash
+sqlplus / as sysdba
+```
+
+3. Run:
+
+```sql
+@/path/to/dba_daily_check.sql
+```
+
+4. 📤 Optional: Use `SPOOL dba_report.txt` to generate report.
+
+---
+
+## ✅ Summary Table (Checklist View)
+
+| # | Task             | Query/Tool                         | Pass Criteria      |
+| - | ---------------- | ---------------------------------- | ------------------ |
+| 1 | Alert Log        | `v$diag_alert_ext`                 | No critical ORA-   |
+| 2 | Backups          | `v$rman_backup_job_details`        | Status = COMPLETED |
+| 3 | Tablespace Space | Custom query                       | Free > 20%         |
+| 4 | Listener         | `lsnrctl status`                   | Listener running   |
+| 5 | RAC Health       | `crsctl stat res -t`               | All Online         |
+| 6 | Data Guard Sync  | `v$archived_log`, `v$archive_dest` | No gap             |
+| 7 | Scheduler Jobs   | `dba_scheduler_jobs`               | No failed jobs     |
+
+---
+
+```
+-- =====================================================
+-- Oracle DBA Daily Health Check Script
+-- Author: ChatGPT
+-- Purpose: Run before every shift handover
+-- =====================================================
+
+SET PAGESIZE 1000
+SET LINESIZE 200
+SET FEEDBACK OFF
+SET VERIFY OFF
+SET HEADING ON
+SET ECHO OFF
+SET WRAP ON
+
+SPOOL dba_daily_health_check.txt
+
+-- 1. Date and Time
+PROMPT =====================================================
+PROMPT DAILY DBA HEALTH CHECK REPORT
+PROMPT Date: 
+SELECT TO_CHAR(SYSDATE, 'DD-MON-YYYY HH24:MI:SS') AS CURRENT_DATE FROM DUAL;
+PROMPT =====================================================
+
+
+-- 2. ALERT LOG (Last 24 hours)
+PROMPT
+PROMPT 1. RECENT ALERT LOG (Last 24 Hours with ORA Errors)
+PROMPT =====================================================
+COLUMN ALERT_TIME FORMAT A25
+COLUMN ALERT_MESSAGE FORMAT A150 WORD_WRAPPED
+
+SELECT 
+    TO_CHAR(originating_timestamp, 'DD-MON-YYYY HH24:MI:SS') AS ALERT_TIME,
+    message_text AS ALERT_MESSAGE
+FROM v$diag_alert_ext
+WHERE originating_timestamp >= SYSDATE - 1
+  AND message_text LIKE 'ORA-%'
+ORDER BY originating_timestamp DESC;
+
+-- 3. RMAN BACKUP STATUS (Last 24 Hours)
+PROMPT
+PROMPT 2. RMAN BACKUP STATUS (Last 24 Hours)
+PROMPT =====================================================
+COLUMN START_TIME FORMAT A20
+COLUMN END_TIME FORMAT A20
+COLUMN STATUS FORMAT A12
+COLUMN INPUT_TYPE FORMAT A15
+COLUMN SIZE_MB FORMAT 999999.99
+
+SELECT 
+    TO_CHAR(start_time, 'DD-MON HH24:MI') AS START_TIME,
+    TO_CHAR(end_time, 'DD-MON HH24:MI') AS END_TIME,
+    status, input_type, ROUND(output_bytes/1024/1024,2) AS SIZE_MB
+FROM v$rman_backup_job_details
+WHERE start_time >= SYSDATE - 1
+ORDER BY start_time DESC;
+
+
+-- 4. TABLESPACE USAGE
+PROMPT
+PROMPT 3. TABLESPACE USAGE DETAILS
+PROMPT =====================================================
+SELECT 
+    df.tablespace_name,
+    ROUND(df.total_space_mb - fs.free_space_mb, 2) AS USED_MB,
+    ROUND(fs.free_space_mb, 2) AS FREE_MB,
+    ROUND((fs.free_space_mb / df.total_space_mb) * 100, 2) AS FREE_PCT
+FROM 
+    (SELECT tablespace_name, SUM(bytes)/1024/1024 AS total_space_mb FROM dba_data_files GROUP BY tablespace_name) df
+JOIN 
+    (SELECT tablespace_name, SUM(bytes)/1024/1024 AS free_space_mb FROM dba_free_space GROUP BY tablespace_name) fs
+ON df.tablespace_name = fs.tablespace_name
+ORDER BY FREE_PCT;
+
+
+-- 5. LISTENER STATUS (Manual Step)
+PROMPT
+PROMPT 4. LISTENER STATUS
+PROMPT =====================================================
+PROMPT Please run: lsnrctl status
+
+-- 6. RAC HEALTH (Manual Step)
+PROMPT
+PROMPT 5. RAC STATUS CHECK (If RAC is Configured)
+PROMPT =====================================================
+PROMPT Please run: crsctl stat res -t
+
+-- 7. DATA GUARD SYNC STATUS
+PROMPT
+PROMPT 6. DATA GUARD SYNC STATUS (Standby Side)
+PROMPT =====================================================
+SELECT 
+    thread#, MAX(sequence#) AS LAST_RECEIVED
+FROM v$archived_log
+WHERE applied = 'NO'
+GROUP BY thread#;
+
+SELECT sequence#, applied FROM v$archived_log
+ORDER BY sequence# DESC FETCH FIRST 10 ROWS ONLY;
+
+
+-- 8. ARCHIVE GAP
+PROMPT
+PROMPT 7. ARCHIVE LOG GAP CHECK
+PROMPT =====================================================
+SELECT * FROM v$archive_gap;
+
+-- 9. SCHEDULER JOBS STATUS
+PROMPT
+PROMPT 8. DBMS_SCHEDULER JOBS STATUS
+PROMPT =====================================================
+SELECT 
+    job_name, state, 
+    TO_CHAR(last_start_date, 'DD-MON HH24:MI') AS LAST_RUN,
+    TO_CHAR(next_run_date, 'DD-MON HH24:MI') AS NEXT_RUN
+FROM dba_scheduler_jobs
+WHERE enabled = 'TRUE';
+
+PROMPT
+PROMPT 9. FAILED JOBS IN LAST 24 HOURS
+PROMPT =====================================================
+SELECT 
+    job_name, status, additional_info, 
+    TO_CHAR(log_date, 'DD-MON HH24:MI') AS LOG_TIME
+FROM dba_scheduler_job_run_details
+WHERE status != 'SUCCEEDED'
+  AND log_date >= SYSDATE - 1
+ORDER BY log_date DESC;
+
+-- 10. FRA (Flash Recovery Area) Usage
+PROMPT
+PROMPT 10. FRA (Flash Recovery Area) USAGE
+PROMPT =====================================================
+SELECT 
+    ROUND(space_used * 100 / space_limit, 2) AS PERCENT_USED,
+    ROUND(space_used / 1024 / 1024, 2) AS USED_MB,
+    ROUND(space_limit / 1024 / 1024, 2) AS LIMIT_MB,
+    number_of_files
+FROM v$recovery_file_dest
+WHERE space_used > 0;
+
+-- 11. INVALID OBJECTS
+PROMPT
+PROMPT 11. INVALID OBJECTS (If Any)
+PROMPT =====================================================
+SELECT object_name, object_type, status FROM dba_objects WHERE status = 'INVALID';
+
+-- 12. BLOCKING SESSIONS
+PROMPT
+PROMPT 12. BLOCKING SESSIONS (If Any)
+PROMPT =====================================================
+SELECT 
+    sid, serial#, blocking_session, wait_class, seconds_in_wait
+FROM v$session
+WHERE blocking_session IS NOT NULL;
+
+-- End of Report
+PROMPT =====================================================
+PROMPT REPORT COMPLETE
+PROMPT =====================================================
+
+SPOOL OFF
+```
