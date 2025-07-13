@@ -266,7 +266,7 @@ select * from tab;
 ```sh
 select sysdate from dual
 ```
-
+> # Tablespace Utilization Report with AutoExtend and Free Space Summary
 ```sh
 set feedback off
 set pagesize 70;
