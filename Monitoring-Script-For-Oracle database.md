@@ -1,5 +1,30 @@
 ## Monitoring-Script-For-Oracle database
 
+## Alert Log Path from SQL?
+```
+SELECT 
+    value || '/diag/rdbms/' || LOWER((SELECT value FROM v$parameter WHERE name = 'db_name')) || 
+    '/' || (SELECT value FROM v$parameter WHERE name = 'instance_name') || '/trace/alert_' || 
+    (SELECT value FROM v$parameter WHERE name = 'instance_name') || '.log' AS ALERT_LOG_PATH
+FROM v$parameter
+WHERE name = 'diagnostic_dest';
+```
+
+## View using SQL Developer:
+```
+SELECT * FROM v$diag_alert_ext
+WHERE originating_timestamp > SYSDATE - 1
+ORDER BY originating_timestamp DESC;
+```
+
+## Details 
+```
+echo $ORACLE_BASE
+echo $ORACLE_HOME
+echo $ORACLE_SID
+
+```
+
 ```
 The provided SQL script gathers various pieces of information about an Oracle 19c database. Below is a list of the specific information the script is designed to retrieve:
 
