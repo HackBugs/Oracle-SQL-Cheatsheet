@@ -1,6 +1,6 @@
 > # Oracle Database 19c Primary and Physical Standby databases
-> WebLogic and Tuxedo
-> [Ahmedbaraka]([url](https://www.ahmedbaraka.com/downloads/))
+> WebLogic and Tuxedo [Ahmedbaraka](https://www.ahmedbaraka.com/downloads/)
+
 
 ## Primary databases
 ```
