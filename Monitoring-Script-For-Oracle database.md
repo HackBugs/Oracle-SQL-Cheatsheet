@@ -336,7 +336,7 @@ AND a.tablespace_name = tbs_auto.tablespace_name(+)
 order by total_free_pct;
 ```
 
-## 
+> # Complete Oracle Database Health Check Script
 ```
 PROMPT
 PROMPT  -- 1. Tablespace Usage
