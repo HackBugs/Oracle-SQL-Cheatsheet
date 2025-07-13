@@ -25,9 +25,10 @@ echo $ORACLE_SID
 
 ```
 
-```
-The provided SQL script gathers various pieces of information about an Oracle 19c database. Below is a list of the specific information the script is designed to retrieve:
+<details>
+<summary><h2><b>1. The provided SQL script gathers various pieces of information about an Oracle 19c database. Below is a list of the specific information the script is designed to retrieve:n</b></summary>
 
+```
 1. **Tablespace Usage**:
    - Instance name
    - Tablespace name
@@ -266,7 +267,11 @@ select * from tab;
 ```sh
 select sysdate from dual
 ```
-> # Tablespace Utilization Report with AutoExtend and Free Space Summary
+</details>
+
+<details>
+     <summary><h2><b>2. Tablespace Utilization Report with AutoExtend and Free Space Summary </b></summary>
+
 ```sh
 set feedback off
 set pagesize 70;
@@ -335,8 +340,11 @@ AND a.tablespace_name = AUTOEXTEND.tablespace_name
 AND a.tablespace_name = tbs_auto.tablespace_name(+)
 order by total_free_pct;
 ```
+</details>
 
-> # Complete Oracle Database Health Check Script
+<details>
+     <summary><h2></h2><b>3. Complete Oracle Database Health Check Script</b></summary>
+    
 ```
 PROMPT
 PROMPT  -- 1. Tablespace Usage
@@ -776,8 +784,11 @@ ORDER BY st.value DESC
 FETCH FIRST 5 ROWS ONLY;
 set feedback on
 ```
+</details>
 
-> # Oracle DBA Daily Health Check Report
+<details>
+     <summary><h2><b>4. Oracle DBA Daily Health Check Report</b></summary>
+
 ```
 -- =====================================================
 -- Oracle DBA Daily Health Check Script
@@ -942,8 +953,10 @@ PROMPT =====================================================
 
 SPOOL OFF
 ```
+</details>
 
-> # Oracle 19c Database Configuration & Path Details Script
+<details>
+     <summary><h2></h2><b>5. Oracle 19c Database Configuration & Path Details Script</b></summary>
 
 ```
 -- =====================================================
@@ -1489,3 +1502,4 @@ ORDER BY originating_timestamp DESC;
 SPOOL OFF
 -- END OF SCRIPT
 ```
+<details>
