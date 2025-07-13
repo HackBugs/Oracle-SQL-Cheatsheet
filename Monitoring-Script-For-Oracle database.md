@@ -336,7 +336,12 @@ AND a.tablespace_name = tbs_auto.tablespace_name(+)
 order by total_free_pct;
 ```
 
+## 
 ```
+PROMPT
+PROMPT  -- 1. Tablespace Usage
+PROMPT =====================================================
+
 set feedback off
 set pagesize 70
 set linesize 2000
@@ -346,7 +351,8 @@ set trimspool on
 
 -- 1. Tablespace Usage (Improved formatting)
 prompt
-prompt === Tablespace Usage ===
+prompt -- 1. Tablespace Usage (Improved formatting)
+PROMPT =====================================================
 COLUMN instance_name format a15 heading 'Instance'
 COLUMN Tablespace format a25 heading 'Tablespace Name'
 COLUMN autoextensible format a11 heading 'AutoExtend'
@@ -366,53 +372,74 @@ WITH tbs_auto AS (
     WHERE autoextensible = 'YES'
 ),
 files AS (
-    SELECT tablespace_name, COUNT(*) tbs_files,
-           SUM(BYTES/1024/1024) total_tbs_bytes
+    SELECT tablespace_name, 
+           COUNT(*) AS tbs_files,
+           SUM(bytes/1024/1024) AS total_tbs_mb
     FROM dba_data_files
     GROUP BY tablespace_name
 ),
 fragments AS (
-    SELECT tablespace_name, COUNT(*) tbs_fragments,
-           SUM(BYTES/1024/1024) total_tbs_free_bytes,
-           MAX(BYTES/1024/1024) max_free_chunk_bytes
+    SELECT tablespace_name, 
+           COUNT(*) AS tbs_fragments,
+           SUM(bytes/1024/1024) AS total_free_mb,
+           MAX(bytes/1024/1024) AS max_free_chunk_mb
     FROM dba_free_space
     GROUP BY tablespace_name
 ),
-AUTOEXTEND AS (
-    SELECT tablespace_name, SUM(size_to_grow) total_growth_tbs
+autoextend_calc AS (
+    SELECT tablespace_name, 
+           SUM(size_to_grow_mb) AS total_growth_mb
     FROM (
-        SELECT tablespace_name, SUM(maxbytes)/1024/1024 size_to_grow
+        SELECT tablespace_name, 
+               SUM(maxbytes)/1024/1024 AS size_to_grow_mb
         FROM dba_data_files
         WHERE autoextensible = 'YES'
         GROUP BY tablespace_name
-        UNION
-        SELECT tablespace_name, SUM(BYTES/1024/1024) size_to_grow
+        
+        UNION ALL
+        
+        SELECT tablespace_name, 
+               SUM(bytes)/1024/1024 AS size_to_grow_mb
         FROM dba_data_files
         WHERE autoextensible = 'NO'
         GROUP BY tablespace_name
     )
     GROUP BY tablespace_name
 )
-SELECT c.instance_name, a.tablespace_name Tablespace,
-       NVL(tbs_auto.autoextensible, 'NO') AS autoextensible,
-       files.tbs_files files_in_tablespace,
-       files.total_tbs_bytes total_tablespace_space,
-       (files.total_tbs_bytes - fragments.total_tbs_free_bytes) total_used_space,
-       fragments.total_tbs_free_bytes total_tablespace_free_space,
-       ROUND(((files.total_tbs_bytes - fragments.total_tbs_free_bytes) / files.total_tbs_bytes * 100)) total_used_pct,
-       ROUND((fragments.total_tbs_free_bytes / files.total_tbs_bytes * 100)) total_free_pct,
-       AUTOEXTEND.total_growth_tbs max_size_of_tablespace,
-       ROUND(((files.total_tbs_bytes - fragments.total_tbs_free_bytes) / NULLIF(AUTOEXTEND.total_growth_tbs, 0) * 100, 2) total_auto_used_pct,
-       ROUND((1 - (files.total_tbs_bytes - fragments.total_tbs_free_bytes) / NULLIF(AUTOEXTEND.total_growth_tbs, 0)) * 100, 2) total_auto_free_pct
-FROM dba_tablespaces a
-JOIN v$instance c ON 1=1
-JOIN files ON a.tablespace_name = files.tablespace_name
-JOIN fragments ON a.tablespace_name = fragments.tablespace_name
-JOIN AUTOEXTEND ON a.tablespace_name = AUTOEXTEND.tablespace_name
-LEFT JOIN tbs_auto ON a.tablespace_name = tbs_auto.tablespace_name
-ORDER BY total_free_pct;
+SELECT 
+    i.instance_name,
+    t.tablespace_name AS "Tablespace",
+    NVL(a.autoextensible, 'NO') AS "Autoextensible",
+    f.tbs_files AS "Files",
+    ROUND(f.total_tbs_mb/1024, 2) AS "Current Size (GB)",
+    ROUND(ac.total_growth_mb/1024, 2) AS "Max Size (GB)",
+    ROUND((f.total_tbs_mb - fr.total_free_mb)/1024, 2) AS "Used Space (GB)",
+    ROUND(fr.total_free_mb/1024, 2) AS "Free Space (GB)",
+    ROUND(((f.total_tbs_mb - fr.total_free_mb) / f.total_tbs_mb) * 100) AS "Used %",
+    ROUND((fr.total_free_mb / f.total_tbs_mb) * 100) AS "Free %",
+    ROUND(fr.max_free_chunk_mb/1024, 2) AS "Largest Free Chunk (GB)",
+    fr.tbs_fragments AS "Fragments",
+    ROUND(((f.total_tbs_mb - fr.total_free_mb) / NULLIF(ac.total_growth_mb, 0)) * 100, 2) AS "Used of Max %",
+    ROUND((1 - ((f.total_tbs_mb - fr.total_free_mb) / NULLIF(ac.total_growth_mb, 0))) * 100, 2) AS "Free of Max %"
+FROM 
+    dba_tablespaces t
+JOIN 
+    v$instance i ON 1=1
+JOIN 
+    files f ON t.tablespace_name = f.tablespace_name
+JOIN 
+    fragments fr ON t.tablespace_name = fr.tablespace_name
+JOIN 
+    autoextend_calc ac ON t.tablespace_name = ac.tablespace_name
+LEFT JOIN 
+    tbs_auto a ON t.tablespace_name = a.tablespace_name
+ORDER BY 
+    "Free %" DESC;
 
 -- 2. Active Sessions (Improved formatting)
+PROMPT
+PROMPT  -- 2. Active Sessions
+PROMPT =====================================================
 prompt
 prompt === Active Sessions ===
 COLUMN sid format 9999 heading 'SID'
@@ -427,10 +454,13 @@ WHERE status = 'ACTIVE' AND type = 'USER'
 ORDER BY sid;
 
 -- 3. Recent Alerts (Improved error handling and formatting)
+PROMPT
+PROMPT  -- 3. Recent Alerts
+PROMPT =====================================================
 prompt
 prompt === Recent Alerts (Last 24 Hours) ===
-COLUMN time format a20 heading 'Time'
-COLUMN message format a80 heading 'Alert Message' trunc
+COLUMN time FORMAT a20 HEADING 'Time'
+COLUMN message FORMAT a80 HEADING 'Alert Message' TRUNC
 DECLARE
     v_count NUMBER;
     v_alerts NUMBER;
@@ -449,8 +479,8 @@ BEGIN
         
         IF v_alerts > 0 THEN
             EXECUTE IMMEDIATE '
-                SELECT TO_CHAR(originating_timestamp, ''YYYY-MM-DD HH24:MI:SS'') time, 
-                       SUBSTR(message_text, 1, 80) message
+                SELECT TO_CHAR(originating_timestamp, ''YYYY-MM-DD HH24:MI:SS'') AS time, 
+                       SUBSTR(message_text, 1, 80) AS message
                 FROM v$diag_alert_ext
                 WHERE originating_timestamp > SYSDATE - 1
                 AND message_text LIKE ''ORA-%''
@@ -469,14 +499,20 @@ END;
 /
 
 -- 4. Blocking Sessions (Improved formatting)
+PROMPT
+PROMPT  -- 4. Blocking Sessions
+PROMPT =====================================================
 prompt
 prompt === Blocking Sessions ===
-COLUMN blocking_session format 9999 heading 'Block SID'
-COLUMN blocked_session format 9999 heading 'Blocked SID'
-COLUMN username format a20 heading 'Username'
-COLUMN wait_time format 999999 heading 'Wait(s)'
-COLUMN seconds_in_wait format 999999 heading 'Seconds Wait'
-COLUMN blocking_status format a15 heading 'Blocking Status'
+COLUMN blocking_session FORMAT 9999 HEADING 'Block SID'
+COLUMN blocked_session FORMAT 9999 HEADING 'Blocked SID'
+COLUMN username FORMAT a20 HEADING 'Username'
+COLUMN wait_time FORMAT 999999 HEADING 'Wait(s)'
+COLUMN seconds_in_wait FORMAT 999999 HEADING 'Seconds Wait'
+COLUMN blocking_status FORMAT a15 HEADING 'Blocking Status'
+COLUMN sql_id FORMAT a15 HEADING 'SQL ID'
+COLUMN event FORMAT a30 HEADING 'Wait Event' TRUNC
+
 DECLARE
     v_count NUMBER;
 BEGIN
@@ -486,17 +522,19 @@ BEGIN
     
     IF v_count > 0 THEN
         EXECUTE IMMEDIATE '
-            SELECT blocking_session, 
-                   sid AS blocked_session, 
-                   username, 
-                   wait_time,
-                   seconds_in_wait,
-                   CASE WHEN blocking_session_status = ''VALID'' THEN ''ACTIVE''
-                        ELSE blocking_session_status
-                   END AS blocking_status
-            FROM v$session
-            WHERE blocking_session IS NOT NULL
-            ORDER BY blocking_session';
+            SELECT s.blocking_session, 
+                   s.sid AS blocked_session, 
+                   s.username, 
+                   s.wait_time/100 AS wait_time,
+                   s.seconds_in_wait,
+                   CASE WHEN s.blocking_session_status = ''VALID'' THEN ''ACTIVE''
+                        ELSE s.blocking_session_status
+                   END AS blocking_status,
+                   s.sql_id,
+                   s.event
+            FROM v$session s
+            WHERE s.blocking_session IS NOT NULL
+            ORDER BY s.blocking_session, s.sid';
     ELSE
         DBMS_OUTPUT.PUT_LINE('No blocking sessions found.');
     END IF;
@@ -507,15 +545,22 @@ END;
 /
 
 -- 5. Long-Running Queries (Improved formatting)
+PROMPT
+PROMPT  -- 5. Long-Running Queries
+PROMPT =====================================================
 prompt
 prompt === Long-Running Queries (> 1 minute) ===
-COLUMN sid format 9999 heading 'SID'
-COLUMN serial# format 99999 heading 'Serial#'
-COLUMN username format a20 heading 'Username'
-COLUMN sql_id format a13 heading 'SQL_ID'
-COLUMN elapsed_seconds format 999999 heading 'Elapsed(s)'
-COLUMN time_remaining format 999999 heading 'Remaining(s)'
-COLUMN opname format a30 heading 'Operation' trunc
+COLUMN sid FORMAT 9999 HEADING 'SID'
+COLUMN serial# FORMAT 99999 HEADING 'Serial#'
+COLUMN username FORMAT a20 HEADING 'Username'
+COLUMN sql_id FORMAT a13 HEADING 'SQL ID'
+COLUMN elapsed_seconds FORMAT 999,999 HEADING 'Elapsed(s)'
+COLUMN time_remaining FORMAT 999,999 HEADING 'Remaining(s)'
+COLUMN opname FORMAT a30 HEADING 'Operation' TRUNC
+COLUMN pct_complete FORMAT 999.99 HEADING '% Complete'
+COLUMN start_time FORMAT a20 HEADING 'Start Time'
+COLUMN target FORMAT a30 HEADING 'Target' TRUNC
+
 DECLARE
     v_count NUMBER;
 BEGIN
@@ -527,35 +572,46 @@ BEGIN
     
     IF v_count > 0 THEN
         EXECUTE IMMEDIATE '
-            SELECT s.sid, 
-                   s.serial#,
-                   s.username,
-                   s.sql_id, 
-                   l.elapsed_seconds,
-                   l.time_remaining,
-                   SUBSTR(l.opname, 1, 30) opname
+            SELECT 
+                s.sid, 
+                s.serial#,
+                s.username,
+                s.sql_id, 
+                l.elapsed_seconds,
+                l.time_remaining,
+                ROUND(l.sofar/DECODE(l.totalwork,0,1,l.totalwork)*100, 2) pct_complete,
+                SUBSTR(l.opname, 1, 30) opname,
+                TO_CHAR(l.start_time, ''YYYY-MM-DD HH24:MI:SS'') start_time,
+                SUBSTR(l.target, 1, 30) target
             FROM v$session s
             JOIN v$session_longops l ON s.sid = l.sid AND s.serial# = l.serial#
             WHERE l.elapsed_seconds > 60
             AND s.type = ''USER''
             ORDER BY l.elapsed_seconds DESC';
     ELSE
-        DBMS_OUTPUT.PUT_LINE('No queries running longer than 1 minute found.');
+        DBMS_OUTPUT.PUT_LINE('No long-running operations (>60s) found for user sessions.');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Error checking long-running queries: ' || SQLERRM);
+        DBMS_OUTPUT.PUT_LINE('Error checking long-running operations: ' || SQLERRM);
 END;
 /
 
 -- 6. Invalid Objects (Improved formatting)
+PROMPT
+PROMPT  -- 6. Invalid Objects
+PROMPT =====================================================
 prompt
 prompt === Invalid Objects ===
-COLUMN owner format a20 heading 'Owner'
-COLUMN object_name format a30 heading 'Object Name'
-COLUMN object_type format a20 heading 'Object Type'
-COLUMN created format a20 heading 'Created'
-COLUMN last_ddl_time format a20 heading 'Last DDL'
+COLUMN owner FORMAT a20 HEADING 'Owner'
+COLUMN object_name FORMAT a30 HEADING 'Object Name'
+COLUMN object_type FORMAT a15 HEADING 'Object Type'
+COLUMN created FORMAT a20 HEADING 'Created'
+COLUMN last_ddl_time FORMAT a20 HEADING 'Last DDL'
+COLUMN status FORMAT a10 HEADING 'Status'
+COLUMN dependency_count FORMAT 999 HEADING 'Dep Count'
+COLUMN compile_errors FORMAT a50 HEADING 'Compile Errors' TRUNC
+
 DECLARE
     v_count NUMBER;
 BEGIN
@@ -565,24 +621,38 @@ BEGIN
     
     IF v_count > 0 THEN
         EXECUTE IMMEDIATE '
-            SELECT owner, 
-                   object_name, 
-                   object_type,
-                   TO_CHAR(created, ''YYYY-MM-DD HH24:MI:SS'') created,
-                   TO_CHAR(last_ddl_time, ''YYYY-MM-DD HH24:MI:SS'') last_ddl_time
-            FROM dba_objects
-            WHERE status = ''INVALID''
-            ORDER BY owner, object_type, object_name';
+            SELECT 
+                o.owner, 
+                o.object_name, 
+                o.object_type,
+                TO_CHAR(o.created, ''YYYY-MM-DD HH24:MI:SS'') created,
+                TO_CHAR(o.last_ddl_time, ''YYYY-MM-DD HH24:MI:SS'') last_ddl_time,
+                o.status,
+                (SELECT COUNT(*) FROM dba_dependencies d 
+                 WHERE d.referenced_owner = o.owner 
+                 AND d.referenced_name = o.object_name) dependency_count,
+                (SELECT LISTAGG(e.text, '' '') WITHIN GROUP (ORDER BY e.line)
+                FROM dba_errors e
+                WHERE e.owner = o.owner
+                AND e.name = o.object_name
+                AND e.type = o.object_type) compile_errors
+            FROM dba_objects o
+            WHERE o.status = ''INVALID''
+            ORDER BY o.owner, o.object_type, o.object_name';
     ELSE
-        DBMS_OUTPUT.PUT_LINE('No invalid objects found.');
+        DBMS_OUTPUT.PUT_LINE('No invalid objects found in the database.');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Error checking invalid objects: ' || SQLERRM);
+        DBMS_OUTPUT.PUT_LINE('Error checking invalid objects: ' || SQLERRM ||
+                             CHR(10) || 'Ensure you have access to DBA_ views.');
 END;
 /
 
 -- 7. Tablespace Fragmentation (Improved formatting)
+PROMPT
+PROMPT  -- 7. Tablespace Fragmentation
+PROMPT =====================================================
 prompt
 prompt === Tablespace Fragmentation ===
 COLUMN tablespace_name format a25 heading 'Tablespace'
@@ -601,6 +671,9 @@ HAVING COUNT(*) > 5
 ORDER BY fragment_count DESC;
 
 -- 8. Redo Log Status (Improved formatting)
+PROMPT
+PROMPT  -- 8. Redo Log Status
+PROMPT =====================================================
 prompt
 prompt === Redo Log Status ===
 COLUMN group# format 999 heading 'Group#'
@@ -620,23 +693,48 @@ JOIN v$log l ON lf.group# = l.group#
 ORDER BY lf.group#;
 
 -- 9. Archive Log Status (Improved formatting)
+PROMPT
+PROMPT  -- 9. Archive Log Status
+PROMPT =====================================================
 prompt
 prompt === Archive Log Status ===
-COLUMN archive_mode format a15 heading 'Archive Mode'
-COLUMN dest_id format 999 heading 'DestID'
-COLUMN dest_name format a30 heading 'Destination' trunc
-COLUMN status format a10 heading 'Status'
-COLUMN destination format a50 heading 'Path' trunc
-SELECT d.log_mode archive_mode,
-       ad.dest_id,
-       ad.name dest_name,
-       ad.status,
-       ad.destination
-FROM v$database d, v$archive_dest ad
-WHERE ad.status != 'INACTIVE'
-ORDER BY ad.dest_id;
+COLUMN archive_mode FORMAT a15 HEADING 'Archive Mode'
+COLUMN dest_id FORMAT 999 HEADING 'Dest|ID'
+COLUMN dest_name FORMAT a20 HEADING 'Destination|Name' TRUNC
+COLUMN status FORMAT a12 HEADING 'Status'
+COLUMN destination FORMAT a50 HEADING 'Path' TRUNC
+COLUMN target FORMAT a10 HEADING 'Target'
+COLUMN protection_mode FORMAT a20 HEADING 'Protection|Mode'
+COLUMN error FORMAT a30 HEADING 'Last Error' TRUNC
+COLUMN fail_sequence FORMAT 999999 HEADING 'Fail|Seq#'
+COLUMN fail_date FORMAT a20 HEADING 'Fail Date'
+
+SET LINESIZE 200
+SET PAGESIZE 100
+
+SELECT 
+    d.log_mode AS archive_mode,
+    d.protection_mode,
+    ad.dest_id,
+    ad.destination,
+    ad.target,
+    ad.status,
+    ad.destination AS dest_name,  -- Changed from ad.name to ad.destination
+    ad.error,
+    ad.fail_sequence,
+    TO_CHAR(ad.fail_date, 'YYYY-MM-DD HH24:MI:SS') AS fail_date
+FROM 
+    v$database d, 
+    v$archive_dest ad
+WHERE 
+    ad.status != 'INACTIVE'
+ORDER BY 
+    ad.dest_id;
 
 -- 10. Archive Log Error Details (Improved formatting)
+PROMPT
+PROMPT  -- 10. Archive Log Error Details
+PROMPT =====================================================
 prompt
 prompt === Archive Log Error Details ===
 COLUMN dest_id format 999 heading 'DestID'
@@ -652,6 +750,9 @@ WHERE status = 'ERROR'
 ORDER BY dest_id;
 
 -- 11. Top 5 CPU-Consuming Sessions (Improved formatting)
+PROMPT
+PROMPT  -- 11. Top 5 CPU-Consuming Sessions
+PROMPT =====================================================
 prompt
 prompt === Top 5 CPU-Consuming Sessions ===
 COLUMN sid format 9999 heading 'SID'
@@ -673,7 +774,6 @@ WHERE sn.name = 'CPU used by this session'
 AND s.type = 'USER'
 ORDER BY st.value DESC
 FETCH FIRST 5 ROWS ONLY;
-
 set feedback on
 ```
 
