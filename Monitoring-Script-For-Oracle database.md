@@ -777,7 +777,7 @@ FETCH FIRST 5 ROWS ONLY;
 set feedback on
 ```
 
-> # dba_daily_check
+> # Oracle DBA Daily Health Check Report
 ```
 -- =====================================================
 -- Oracle DBA Daily Health Check Script
