@@ -677,12 +677,178 @@ FETCH FIRST 5 ROWS ONLY;
 set feedback on
 ```
 
+> # dba_daily_check
+```
+-- =====================================================
+-- Oracle DBA Daily Health Check Script
+-- Author: ChatGPT
+-- Purpose: Run before every shift handover
+-- =====================================================
+
+SET PAGESIZE 1000
+SET LINESIZE 200
+SET FEEDBACK OFF
+SET VERIFY OFF
+SET HEADING ON
+SET ECHO OFF
+SET WRAP ON
+
+SPOOL dba_daily_health_check.txt
+
+-- 1. Date and Time
+PROMPT =====================================================
+PROMPT DAILY DBA HEALTH CHECK REPORT
+PROMPT Date: 
+SELECT TO_CHAR(SYSDATE, 'DD-MON-YYYY HH24:MI:SS') AS CURRENT_DATE FROM DUAL;
+PROMPT =====================================================
+
+
+-- 2. ALERT LOG (Last 24 hours)
+PROMPT
+PROMPT 1. RECENT ALERT LOG (Last 24 Hours with ORA Errors)
+PROMPT =====================================================
+COLUMN ALERT_TIME FORMAT A25
+COLUMN ALERT_MESSAGE FORMAT A150 WORD_WRAPPED
+
+SELECT 
+    TO_CHAR(originating_timestamp, 'DD-MON-YYYY HH24:MI:SS') AS ALERT_TIME,
+    message_text AS ALERT_MESSAGE
+FROM v$diag_alert_ext
+WHERE originating_timestamp >= SYSDATE - 1
+  AND message_text LIKE 'ORA-%'
+ORDER BY originating_timestamp DESC;
+
+-- 3. RMAN BACKUP STATUS (Last 24 Hours)
+PROMPT
+PROMPT 2. RMAN BACKUP STATUS (Last 24 Hours)
+PROMPT =====================================================
+COLUMN START_TIME FORMAT A20
+COLUMN END_TIME FORMAT A20
+COLUMN STATUS FORMAT A12
+COLUMN INPUT_TYPE FORMAT A15
+COLUMN SIZE_MB FORMAT 999999.99
+
+SELECT 
+    TO_CHAR(start_time, 'DD-MON HH24:MI') AS START_TIME,
+    TO_CHAR(end_time, 'DD-MON HH24:MI') AS END_TIME,
+    status, input_type, ROUND(output_bytes/1024/1024,2) AS SIZE_MB
+FROM v$rman_backup_job_details
+WHERE start_time >= SYSDATE - 1
+ORDER BY start_time DESC;
+
+
+-- 4. TABLESPACE USAGE
+PROMPT
+PROMPT 3. TABLESPACE USAGE DETAILS
+PROMPT =====================================================
+SELECT 
+    df.tablespace_name,
+    ROUND(df.total_space_mb - fs.free_space_mb, 2) AS USED_MB,
+    ROUND(fs.free_space_mb, 2) AS FREE_MB,
+    ROUND((fs.free_space_mb / df.total_space_mb) * 100, 2) AS FREE_PCT
+FROM 
+    (SELECT tablespace_name, SUM(bytes)/1024/1024 AS total_space_mb FROM dba_data_files GROUP BY tablespace_name) df
+JOIN 
+    (SELECT tablespace_name, SUM(bytes)/1024/1024 AS free_space_mb FROM dba_free_space GROUP BY tablespace_name) fs
+ON df.tablespace_name = fs.tablespace_name
+ORDER BY FREE_PCT;
+
+
+-- 5. LISTENER STATUS (Manual Step)
+PROMPT
+PROMPT 4. LISTENER STATUS
+PROMPT =====================================================
+PROMPT Please run: lsnrctl status
+
+-- 6. RAC HEALTH (Manual Step)
+PROMPT
+PROMPT 5. RAC STATUS CHECK (If RAC is Configured)
+PROMPT =====================================================
+PROMPT Please run: crsctl stat res -t
+
+-- 7. DATA GUARD SYNC STATUS
+PROMPT
+PROMPT 6. DATA GUARD SYNC STATUS (Standby Side)
+PROMPT =====================================================
+SELECT 
+    thread#, MAX(sequence#) AS LAST_RECEIVED
+FROM v$archived_log
+WHERE applied = 'NO'
+GROUP BY thread#;
+
+SELECT sequence#, applied FROM v$archived_log
+ORDER BY sequence# DESC FETCH FIRST 10 ROWS ONLY;
+
+
+-- 8. ARCHIVE GAP
+PROMPT
+PROMPT 7. ARCHIVE LOG GAP CHECK
+PROMPT =====================================================
+SELECT * FROM v$archive_gap;
+
+-- 9. SCHEDULER JOBS STATUS
+PROMPT
+PROMPT 8. DBMS_SCHEDULER JOBS STATUS
+PROMPT =====================================================
+SELECT 
+    job_name, state, 
+    TO_CHAR(last_start_date, 'DD-MON HH24:MI') AS LAST_RUN,
+    TO_CHAR(next_run_date, 'DD-MON HH24:MI') AS NEXT_RUN
+FROM dba_scheduler_jobs
+WHERE enabled = 'TRUE';
+
+PROMPT
+PROMPT 9. FAILED JOBS IN LAST 24 HOURS
+PROMPT =====================================================
+SELECT 
+    job_name, status, additional_info, 
+    TO_CHAR(log_date, 'DD-MON HH24:MI') AS LOG_TIME
+FROM dba_scheduler_job_run_details
+WHERE status != 'SUCCEEDED'
+  AND log_date >= SYSDATE - 1
+ORDER BY log_date DESC;
+
+-- 10. FRA (Flash Recovery Area) Usage
+PROMPT
+PROMPT 10. FRA (Flash Recovery Area) USAGE
+PROMPT =====================================================
+SELECT 
+    ROUND(space_used * 100 / space_limit, 2) AS PERCENT_USED,
+    ROUND(space_used / 1024 / 1024, 2) AS USED_MB,
+    ROUND(space_limit / 1024 / 1024, 2) AS LIMIT_MB,
+    number_of_files
+FROM v$recovery_file_dest
+WHERE space_used > 0;
+
+-- 11. INVALID OBJECTS
+PROMPT
+PROMPT 11. INVALID OBJECTS (If Any)
+PROMPT =====================================================
+SELECT object_name, object_type, status FROM dba_objects WHERE status = 'INVALID';
+
+-- 12. BLOCKING SESSIONS
+PROMPT
+PROMPT 12. BLOCKING SESSIONS (If Any)
+PROMPT =====================================================
+SELECT 
+    sid, serial#, blocking_session, wait_class, seconds_in_wait
+FROM v$session
+WHERE blocking_session IS NOT NULL;
+
+-- End of Report
+PROMPT =====================================================
+PROMPT REPORT COMPLETE
+PROMPT =====================================================
+
+SPOOL OFF
+```
+
 > # All imp path
 
 ```
 -- =====================================================
 -- Oracle 19c Database Paths and Configuration Check
--- Corrected version for @script.sql usage
+-- Cleaned and corrected version for @script.sql usage
 -- =====================================================
 
 SET PAGESIZE 1000
@@ -693,6 +859,8 @@ SET HEADING ON
 SET ECHO OFF
 SET TRIMSPOOL ON
 SET TERMOUT ON
+
+SPOOL Path_details.txt
 
 -- Column formatting (for clean output)
 COLUMN DATABASE_NAME FORMAT A15
@@ -776,10 +944,19 @@ COLUMN USED_PERCENT FORMAT 999.99
 COLUMN CHECK_TYPE FORMAT A25
 COLUMN STATUS FORMAT A20
 
+COLUMN ERROR_TIME FORMAT A20
+COLUMN ERROR_MESSAGE FORMAT A100 WORD_WRAPPED
+
 -- Timestamp of Report Generation
+PROMPT
+PROMPT Timestamp of Report Generation
+PROMPT =====================================================
 SELECT TO_CHAR(SYSDATE, 'DD-MON-YYYY HH24:MI:SS') AS REPORT_TIME FROM DUAL;
 
 -- 1. DATABASE INFORMATION
+PROMPT
+PROMPT 1. DATABASE INFORMATION
+PROMPT =====================================================
 SELECT 
     d.name AS database_name,
     d.dbid AS database_id,
@@ -795,6 +972,9 @@ SELECT
 FROM v$database d, v$instance i;
 
 -- 2. DATAFILE LOCATIONS
+PROMPT
+PROMPT 2. DATAFILE LOCATIONS
+PROMPT =====================================================
 SELECT 
     file_id AS FILE_ID,
     tablespace_name AS TABLESPACE_NAME,
@@ -806,6 +986,9 @@ FROM dba_data_files
 ORDER BY tablespace_name, file_id;
 
 -- 3. TEMPFILE LOCATIONS
+PROMPT
+PROMPT 3. TEMPFILE LOCATIONS
+PROMPT =====================================================
 SELECT 
     file_id AS FILE_ID,
     tablespace_name AS TABLESPACE_NAME,
@@ -817,6 +1000,9 @@ FROM dba_temp_files
 ORDER BY tablespace_name, file_id;
 
 -- 4. CONTROL FILE LOCATIONS
+PROMPT
+PROMPT 4. CONTROL FILE LOCATIONS
+PROMPT =====================================================
 SELECT 
     name AS CONTROL_FILE_PATH,
     status AS STATUS,
@@ -826,6 +1012,9 @@ SELECT
 FROM v$controlfile;
 
 -- 5. REDO LOG FILE LOCATIONS
+PROMPT
+PROMPT 5. REDO LOG FILE LOCATIONS
+PROMPT =====================================================
 SELECT 
     l.group# AS GROUP_NUMBER,
     l.thread# AS THREAD_NUMBER,
@@ -839,6 +1028,9 @@ WHERE l.group# = lf.group#
 ORDER BY l.group#, lf.member;
 
 -- 6. ARCHIVE LOG DESTINATIONS
+PROMPT
+PROMPT 6. ARCHIVE LOG DESTINATIONS
+PROMPT =====================================================
 SELECT 
     dest_id AS DEST_ID,
     destination AS DESTINATION_PATH,
@@ -852,6 +1044,9 @@ FROM v$archive_dest
 WHERE status != 'INACTIVE' OR destination IS NOT NULL;
 
 -- 7. DIAGNOSTIC DESTINATION
+PROMPT
+PROMPT 7. DIAGNOSTIC DESTINATION
+PROMPT =====================================================
 SELECT 
     name AS PARAMETER_NAME,
     value AS PARAMETER_VALUE,
@@ -860,6 +1055,9 @@ FROM v$parameter
 WHERE name IN ('diagnostic_dest', 'background_dump_dest', 'user_dump_dest', 'core_dump_dest');
 
 -- 8. FLASH RECOVERY AREA (FRA) DETAILS
+PROMPT
+PROMPT 8. FLASH RECOVERY AREA (FRA) DETAILS
+PROMPT =====================================================
 SELECT 
     name AS PARAMETER_NAME,
     value AS PARAMETER_VALUE
@@ -876,6 +1074,9 @@ FROM v$recovery_file_dest
 WHERE space_used > 0;
 
 -- 9. DIRECTORY OBJECTS
+PROMPT
+PROMPT 9. DIRECTORY OBJECTS
+PROMPT =====================================================
 SELECT 
     directory_name AS DIRECTORY_NAME,
     directory_path AS DIRECTORY_PATH,
@@ -884,6 +1085,9 @@ FROM dba_directories
 ORDER BY directory_name;
 
 -- 10. DUMP DESTINATIONS
+PROMPT
+PROMPT 10. DUMP DESTINATIONS
+PROMPT =====================================================
 SELECT 
     'BACKGROUND_DUMP_DEST' AS DUMP_TYPE,
     value AS PATH
@@ -905,6 +1109,9 @@ SELECT
 FROM v$parameter WHERE name = 'diagnostic_dest';
 
 -- 11. AUDIT FILE DESTINATION
+PROMPT
+PROMPT 11. AUDIT FILE DESTINATION
+PROMPT =====================================================
 SELECT 
     name AS PARAMETER_NAME,
     value AS PARAMETER_VALUE
@@ -912,49 +1119,73 @@ FROM v$parameter
 WHERE name IN ('audit_file_dest', 'audit_trail', 'audit_sys_operations');
 
 -- 12. SPFILE AND PFILE LOCATIONS
+PROMPT
+PROMPT 12. SPFILE AND PFILE LOCATIONS
+PROMPT =====================================================
 SELECT 
     'SPFILE' AS FILE_TYPE,
     value AS FILE_PATH
-FROM v$parameter 
-WHERE name = 'spfile'
+FROM v$parameter WHERE name = 'spfile'
 UNION ALL
 SELECT 
-    'PFILE' AS FILE_TYPE,
+    'ORACLE_HOME' AS FILE_TYPE,
     value || '/dbs/init' || (SELECT value FROM v$parameter WHERE name = 'db_name') || '.ora' AS FILE_PATH
-FROM v$parameter 
-WHERE name = 'oracle_home';
-
--- 13. ORACLE HOME AND BASE INFORMATION
-SELECT 
-    name AS PARAMETER_NAME,
-    value AS PARAMETER_VALUE
-FROM v$parameter 
-WHERE name IN ('oracle_home', 'oracle_base');
-
--- 14. NETWORK CONFIGURATION INFORMATION
-SELECT 
-    'TNS_ADMIN' AS CONFIG_TYPE,
-    value AS PATH
-FROM v$parameter WHERE name = 'tns_admin'
-UNION ALL
-SELECT 
-    'ORACLE_HOME/network/admin' AS CONFIG_TYPE,
-    value || '/network/admin' AS PATH
 FROM v$parameter WHERE name = 'oracle_home';
 
--- 15. RECENT BACKUP PIECE LOCATIONS (RMAN)
+-- 13. ORACLE HOME AND BASE INFORMATION
+PROMPT
+PROMPT 13. ORACLE HOME AND BASE INFORMATION
+PROMPT =====================================================
 SELECT 
-    bp.handle AS BACKUP_PIECE_PATH,
-    bp.media AS MEDIA_TYPE,
-    TO_CHAR(bp.start_time, 'DD-MON-YYYY HH24:MI:SS') AS START_TIME,
-    TO_CHAR(bp.completion_time, 'DD-MON-YYYY HH24:MI:SS') AS COMPLETION_TIME,
-    ROUND(bp.bytes/1024/1024/1024,2) AS SIZE_GB,
-    bp.status AS STATUS
+    name AS parameter_name,
+    value AS parameter_value,
+    display_value AS display_value
+FROM v$parameter
+WHERE name IN ('spfile', 'memory_target', 'memory_max_target', 'processes', 'nls_language')
+ORDER BY name;
+
+-- 14. NETWORK CONFIGURATION INFORMATION
+PROMPT
+PROMPT 14. NETWORK CONFIGURATION INFORMATION
+PROMPT =====================================================
+SELECT 
+    'TNS_ADMIN' AS config_type,
+    value AS path
+FROM v$parameter 
+WHERE name = 'tns_admin' AND value IS NOT NULL
+UNION ALL
+SELECT 
+    'ORACLE_HOME/network/admin' AS config_type,
+    sys_context('USERENV', 'ORACLE_HOME') || '/network/admin' AS path
+FROM dual
+WHERE sys_context('USERENV', 'ORACLE_HOME') IS NOT NULL
+UNION ALL
+SELECT 
+    'DEFAULT_TNS_ADMIN' AS config_type,
+    '/etc/oracle' AS path
+FROM dual
+WHERE NOT EXISTS (
+    SELECT 1 FROM v$parameter 
+    WHERE name = 'tns_admin' AND value IS NOT NULL
+)
+AND sys_context('USERENV', 'ORACLE_HOME') IS NULL;
+
+-- 15. RECENT BACKUP PIECE LOCATIONS (RMAN)
+PROMPT
+PROMPT 15. RECENT BACKUP PIECE LOCATIONS (RMAN)
+PROMPT =====================================================
+SELECT 
+    bp.handle AS backup_piece_path,
+    bp.media AS media_type,
+    TO_CHAR(bp.start_time, 'YYYY-MM-DD HH24:MI:SS') AS start_time,
+    bp.status AS status
 FROM v$backup_piece bp
-WHERE bp.start_time > SYSDATE - 7
 ORDER BY bp.start_time DESC;
 
 -- 16. DATABASE FILE STORAGE TYPE
+PROMPT
+PROMPT 16. DATABASE FILE STORAGE TYPE
+PROMPT =====================================================
 SELECT 
     'DATAFILES' AS FILE_TYPE,
     CASE 
@@ -964,11 +1195,12 @@ SELECT
     END AS STORAGE_TYPE,
     COUNT(*) AS FILE_COUNT
 FROM dba_data_files
-GROUP BY CASE 
-    WHEN file_name LIKE '+%' THEN 'ASM'
-    WHEN file_name LIKE '/dev/%' THEN 'RAW DEVICE'
-    ELSE 'FILESYSTEM'
-END
+GROUP BY 
+    CASE 
+        WHEN file_name LIKE '+%' THEN 'ASM'
+        WHEN file_name LIKE '/dev/%' THEN 'RAW DEVICE'
+        ELSE 'FILESYSTEM'
+    END
 UNION ALL
 SELECT 
     'TEMPFILES' AS FILE_TYPE,
@@ -979,44 +1211,34 @@ SELECT
     END AS STORAGE_TYPE,
     COUNT(*) AS FILE_COUNT
 FROM dba_temp_files
-GROUP BY CASE 
-    WHEN file_name LIKE '+%' THEN 'ASM'
-    WHEN file_name LIKE '/dev/%' THEN 'RAW DEVICE'
-    ELSE 'FILESYSTEM'
-END;
+GROUP BY 
+    CASE 
+        WHEN file_name LIKE '+%' THEN 'ASM'
+        WHEN file_name LIKE '/dev/%' THEN 'RAW DEVICE'
+        ELSE 'FILESYSTEM'
+    END;
 
 -- 17. IMPORTANT ORACLE HOME SUBDIRECTORIES
-SELECT 
-    'ORACLE_HOME' AS BASE_PATH,
-    value AS PATH
-FROM v$parameter WHERE name = 'oracle_home'
+PROMPT
+PROMPT 17. IMPORTANT ORACLE HOME SUBDIRECTORIES
+PROMPT =====================================================
+SET SQLBLANKLINES ON
+SELECT 'ORACLE_HOME' AS BASE_PATH, sys_context('USERENV', 'ORACLE_HOME') AS PATH FROM dual WHERE sys_context('USERENV', 'ORACLE_HOME') IS NOT NULL
 UNION ALL
-SELECT 
-    'BIN Directory' AS BASE_PATH,
-    value || '/bin' AS PATH
-FROM v$parameter WHERE name = 'oracle_home'
+SELECT 'BIN Directory' AS BASE_PATH, sys_context('USERENV', 'ORACLE_HOME') || '/bin' AS PATH FROM dual WHERE sys_context('USERENV', 'ORACLE_HOME') IS NOT NULL
 UNION ALL
-SELECT 
-    'LIB Directory' AS BASE_PATH,
-    value || '/lib' AS PATH
-FROM v$parameter WHERE name = 'oracle_home'
+SELECT 'LIB Directory' AS BASE_PATH, sys_context('USERENV', 'ORACLE_HOME') || '/lib' AS PATH FROM dual WHERE sys_context('USERENV', 'ORACLE_HOME') IS NOT NULL
 UNION ALL
-SELECT 
-    'RDBMS/ADMIN Directory' AS BASE_PATH,
-    value || '/rdbms/admin' AS PATH
-FROM v$parameter WHERE name = 'oracle_home'
+SELECT 'RDBMS/ADMIN Directory' AS BASE_PATH, sys_context('USERENV', 'ORACLE_HOME') || '/rdbms/admin' AS PATH FROM dual WHERE sys_context('USERENV', 'ORACLE_HOME') IS NOT NULL
 UNION ALL
-SELECT 
-    'NETWORK/ADMIN Directory' AS BASE_PATH,
-    value || '/network/admin' AS PATH
-FROM v$parameter WHERE name = 'oracle_home'
+SELECT 'NETWORK/ADMIN Directory' AS BASE_PATH, sys_context('USERENV', 'ORACLE_HOME') || '/network/admin' AS PATH FROM dual WHERE sys_context('USERENV', 'ORACLE_HOME') IS NOT NULL
 UNION ALL
-SELECT 
-    'DBS Directory' AS BASE_PATH,
-    value || '/dbs' AS PATH
-FROM v$parameter WHERE name = 'oracle_home';
+SELECT 'DBS Directory' AS BASE_PATH, sys_context('USERENV', 'ORACLE_HOME') || '/dbs' AS PATH FROM dual WHERE sys_context('USERENV', 'ORACLE_HOME') IS NOT NULL;
 
 -- 18. ALERT LOG LOCATION
+PROMPT
+PROMPT 18. ALERT LOG LOCATION
+PROMPT =====================================================
 SELECT 
     'ALERT_LOG' AS LOG_TYPE,
     value || '/diag/rdbms/' || LOWER((SELECT value FROM v$parameter WHERE name = 'db_name')) || 
@@ -1031,6 +1253,9 @@ SELECT
 FROM v$parameter WHERE name = 'diagnostic_dest';
 
 -- 19. WALLET LOCATION (TDE CONFIGURATION)
+PROMPT
+PROMPT 19. WALLET LOCATION (TDE CONFIGURATION)
+PROMPT =====================================================
 SELECT 
     name AS PARAMETER_NAME,
     value AS PARAMETER_VALUE
@@ -1046,6 +1271,9 @@ SELECT
 FROM v$encryption_wallet;
 
 -- 20. ASM DISKGROUP INFORMATION
+PROMPT
+PROMPT 20. ASM DISKGROUP INFORMATION
+PROMPT =====================================================
 SELECT 
     'ASM_USAGE_CHECK' AS CHECK_TYPE,
     CASE 
@@ -1055,17 +1283,10 @@ SELECT
 FROM dba_data_files 
 WHERE file_name LIKE '+%';
 
-SELECT 
-    name AS DISKGROUP_NAME,
-    state AS STATE,
-    type AS REDUNDANCY_TYPE,
-    ROUND(total_mb/1024,2) AS TOTAL_GB,
-    ROUND(free_mb/1024,2) AS FREE_GB,
-    ROUND((total_mb-free_mb)/1024,2) AS USED_GB,
-    ROUND(((total_mb-free_mb)/total_mb)*100,2) AS USED_PERCENT
-FROM v$asm_diskgroup;
-
 -- 21. ADDITIONAL SYSTEM INFORMATION
+PROMPT
+PROMPT 21. ADDITIONAL SYSTEM INFORMATION
+PROMPT =====================================================
 SELECT 
     'INSTANCE_NAME' AS INFO_TYPE,
     value AS VALUE
@@ -1097,19 +1318,74 @@ SELECT
 FROM v$parameter WHERE name = 'pga_aggregate_target';
 
 -- 22. TABLESPACE USAGE SUMMARY
-SELECT 
-    df.tablespace_name AS TABLESPACE_NAME,
-    ROUND(df.total_size_gb,2) AS TOTAL_SIZE_GB,
-    ROUND(df.total_size_gb - NVL(fs.free_size_gb,0),2) AS USED_SIZE_GB,
-    ROUND(NVL(fs.free_size_gb,0),2) AS FREE_SIZE_GB,
-    ROUND(((df.total_size_gb - NVL(fs.free_size_gb,0))/df.total_size_gb)*100,2) AS USED_PERCENT
-FROM 
-    (SELECT tablespace_name, SUM(bytes)/1024/1024/1024 AS total_size_gb
-     FROM dba_data_files GROUP BY tablespace_name) df
-LEFT JOIN 
-    (SELECT tablespace_name, SUM(bytes)/1024/1024/1024 AS free_size_gb
-     FROM dba_free_space GROUP BY tablespace_name) fs
-ON df.tablespace_name = fs.tablespace_name;
+PROMPT
+PROMPT 22. TABLESPACE USAGE SUMMARY
+PROMPT =====================================================
+WITH ts_metrics AS (
+    SELECT
+        df.tablespace_name,
+        df.total_size_gb,
+        NVL(fs.free_size_gb, 0) AS free_size_gb,
+        NVL(us.used_size_gb, 0) AS used_size_gb,
+        df.max_size_gb,
+        df.autoextensible,
+        df.status,
+        ts.contents,
+        ts.block_size,
+        ts.extent_management,
+        ts.allocation_type,
+        ts.segment_space_management
+    FROM 
+        (SELECT 
+            tablespace_name,
+            SUM(bytes)/1024/1024/1024 AS total_size_gb,
+            SUM(CASE WHEN autoextensible = 'YES' THEN maxbytes ELSE bytes END)/1024/1024/1024 AS max_size_gb,
+            MAX(autoextensible) AS autoextensible,
+            MAX(status) AS status
+         FROM dba_data_files 
+         GROUP BY tablespace_name) df
+    LEFT JOIN 
+        (SELECT tablespace_name, SUM(bytes)/1024/1024/1024 AS free_size_gb
+         FROM dba_free_space GROUP BY tablespace_name) fs
+    ON df.tablespace_name = fs.tablespace_name
+    LEFT JOIN
+        (SELECT tablespace_name, SUM(bytes)/1024/1024/1024 AS used_size_gb
+         FROM dba_segments GROUP BY tablespace_name) us
+    ON df.tablespace_name = us.tablespace_name
+    JOIN dba_tablespaces ts ON df.tablespace_name = ts.tablespace_name
+)
+SELECT
+    tablespace_name AS "Tablespace",
+    contents AS "Type",
+    ROUND(total_size_gb, 2) AS "Current Size (GB)",
+    ROUND(max_size_gb, 2) AS "Max Size (GB)",
+    ROUND(used_size_gb, 2) AS "Used Space (GB)",
+    ROUND(free_size_gb, 2) AS "Free Space (GB)",
+    ROUND((used_size_gb/total_size_gb)*100, 2) AS "Used %",
+    ROUND((free_size_gb/total_size_gb)*100, 2) AS "Free %",
+    ROUND((max_size_gb - total_size_gb)/1024, 2) AS "Growth Available (TB)",
+    autoextensible AS "Autoextend",
+    status AS "Status",
+    block_size/1024 AS "Block Size (KB)",
+    extent_management AS "Extent Mgmt",
+    allocation_type AS "Allocation Type",
+    segment_space_management AS "Segment Mgmt"
+FROM ts_metrics
+ORDER BY "Used %" DESC, tablespace_name;
 
+-- 23. RECENT ALERT LOG (Last 24 Hours with ORA Errors)
+PROMPT
+PROMPT 23. RECENT ALERT LOG (Last 24 Hours with ORA Errors)
+PROMPT =====================================================
+SELECT 
+    TO_CHAR(originating_timestamp, 'DD-MON-YYYY HH24:MI:SS') AS ERROR_TIME,
+    message_text AS ERROR_MESSAGE
+FROM v$diag_alert_ext
+WHERE component_id = 'rdbms'
+AND message_text LIKE 'ORA-%'
+AND originating_timestamp >= SYSDATE - 1
+ORDER BY originating_timestamp DESC;
+
+SPOOL OFF
 -- END OF SCRIPT
 ```
