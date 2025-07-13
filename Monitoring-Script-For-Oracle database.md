@@ -1,5 +1,239 @@
 ## Monitoring-Script-For-Oracle database
 
+```
+The provided SQL script gathers various pieces of information about an Oracle 19c database. Below is a list of the specific information the script is designed to retrieve:
+
+1. **Tablespace Usage**:
+   - Instance name
+   - Tablespace name
+   - Autoextensible status (YES/NO)
+   - Number of files in the tablespace
+   - Total space in megabytes (MB)
+   - Used space in MB
+   - Free space in MB
+   - Percentage of space used (%Used)
+   - Percentage of free space (%Free)
+   - Maximum size the tablespace can extend to (Max MB)
+   - Maximum percentage used considering autoextend (Max%Used)
+   - Maximum percentage free considering autoextend (Max%Free)
+
+2. **Active Sessions**:
+   - Session ID (SID)
+   - Serial number
+   - Username
+   - Status
+   - Program name
+   - SQL ID
+
+3. **Recent Alerts (Last 24 Hours)**:
+   - Timestamp of alerts
+   - Alert message (ORA- errors)
+
+4. **Blocking Sessions**:
+   - Blocking session ID
+   - Blocked session ID
+   - Username
+   - Wait time in seconds
+   - Seconds in wait
+   - Blocking status
+
+5. **Long-Running Queries (> 1 Minute)**:
+   - Session ID (SID)
+   - Serial number
+   - Username
+   - SQL ID
+   - Elapsed time in seconds
+   - Remaining time in seconds
+   - Operation name
+
+6. **Invalid Objects**:
+   - Owner
+   - Object name
+   - Object type
+   - Creation timestamp
+   - Last DDL timestamp
+
+7. **Tablespace Fragmentation**:
+   - Tablespace name
+   - Number of fragments
+   - Total free space in MB
+   - Maximum free chunk in MB
+   - Percentage of maximum chunk relative to total free space
+
+8. **Redo Log Status**:
+   - Group number
+   - Log file member path
+   - Status
+   - Size in MB
+   - Sequence number
+   - First change number
+
+9. **Archive Log Status**:
+   - Archive mode
+   - Destination ID
+   - Destination name
+   - Status
+   - Destination path
+
+10. **Archive Log Error Details**:
+    - Destination ID
+    - Destination path
+    - Status
+    - Error message
+
+11. **Top 5 CPU-Consuming Sessions**:
+    - Session ID (SID)
+    - Serial number
+    - Username
+    - Program name
+    - CPU usage in seconds
+    - SQL ID
+
+12. **Database Information**:
+    - Database name
+    - Database ID
+    - Creation date
+    - Log mode
+    - Open mode
+    - Database role
+    - Platform name
+    - Version
+    - Flashback status
+    - Force logging status
+    - Current SCN
+
+13. **Datafile Locations**:
+    - File ID
+    - Tablespace name
+    - File path
+    - Size in gigabytes (GB)
+    - Status
+    - Autoextensible status
+
+14. **Tempfile Locations**:
+    - File ID
+    - Tablespace name
+    - File path
+    - Size in GB
+    - Status
+    - Autoextensible status
+
+15. **Control File Locations**:
+    - Control file path
+    - Status
+    - Recovery destination file status
+    - Block size
+    - File size in blocks
+
+16. **Redo Log File Locations**:
+    - Group number
+    - Thread number
+    - Sequence number
+    - Group status
+    - Log file path
+    - File status
+    - Size in MB
+
+17. **Archive Log Destinations**:
+    - Destination ID
+    - Destination path
+    - Status
+    - Binding
+    - Target
+    - Archiver
+    - Schedule
+    - Process
+
+18. **Diagnostic Destination**:
+    - Parameter name (diagnostic_dest, background_dump_dest, user_dump_dest, core_dump_dest)
+    - Parameter value
+    - Description
+
+19. **Flash Recovery Area (FRA) Details**:
+    - Parameter name (db_recovery_file_dest, db_recovery_file_dest_size)
+    - Parameter value
+    - Percentage used
+    - Used space in GB
+    - Limit in GB
+    - Number of files
+
+20. **Directory Objects**:
+    - Directory name
+    - Directory path
+    - Origin container ID
+
+21. **Dump Destinations**:
+    - Dump type (background, user, core, diagnostic)
+    - Path
+
+22. **Audit File Destination**:
+    - Parameter name (audit_file_dest, audit_trail, audit_sys_operations)
+    - Parameter value
+
+23. **SPFILE and PFILE Locations**:
+    - File type (SPFILE, PFILE)
+    - File path
+
+24. **Oracle Home and Base Information**:
+    - Parameter name (oracle_home, oracle_base)
+    - Parameter value
+
+25. **Network Configuration Information**:
+    - Configuration type (TNS_ADMIN, ORACLE_HOME/network/admin)
+    - Path
+
+26. **Recent Backup Piece Locations (RMAN)**:
+    - Backup piece path
+    - Media type
+    - Start time
+    - Completion time
+    - Size in GB
+    - Status
+
+27. **Database File Storage Type**:
+    - File type (DATAFILES, TEMPFILES)
+    - Storage type (ASM, RAW DEVICE, FILESYSTEM)
+    - File count
+
+28. **Important Oracle Home Subdirectories**:
+    - Base path (ORACLE_HOME, BIN, LIB, RDBMS/ADMIN, NETWORK/ADMIN, DBS)
+    - Path
+
+29. **Alert Log Location**:
+    - Log type (ALERT_LOG, TRACE_DIRECTORY)
+    - Log path
+
+30. **Wallet Location (TDE Configuration)**:
+    - Parameter name (wallet_root, tde_configuration)
+    - Parameter value
+    - TDE status
+
+31. **ASM Diskgroup Information**:
+    - ASM usage status
+    - Diskgroup name
+    - State
+    - Redundancy type
+    - Total size in GB
+    - Free size in GB
+    - Used size in GB
+    - Used percentage
+
+32. **Additional System Information**:
+    - Instance name
+    - Database block size
+    - Compatible parameter
+    - Memory target
+    - SGA target
+    - PGA aggregate target
+
+33. **Tablespace Usage Summary**:
+    - Tablespace name
+    - Total size in GB
+    - Used size in GB
+    - Free size in GB
+    - Used percentage
+```
+
 ```sh
 select * from tab;
 ```
