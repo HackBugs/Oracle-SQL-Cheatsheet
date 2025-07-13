@@ -943,7 +943,7 @@ PROMPT =====================================================
 SPOOL OFF
 ```
 
-> # All imp path
+> # Oracle 19c Database Configuration & Path Details Script
 
 ```
 -- =====================================================
