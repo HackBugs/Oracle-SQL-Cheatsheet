@@ -304,6 +304,7 @@ ORDER BY originating_timestamp DESC;
 
 ```bash
 tail -50 $ORACLE_BASE/diag/rdbms/<db>/<inst>/trace/alert_<inst>.log
+/u01/app/oracle/diag/rdbms/oradb/oradb/trace/alert_oradb.log
 ```
 
 ---
