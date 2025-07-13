@@ -417,3 +417,440 @@ FETCH FIRST 5 ROWS ONLY;
 
 set feedback on
 ```
+
+> # All imp path
+
+```
+-- =====================================================
+-- Oracle 19c Database Paths and Configuration Check
+-- Corrected version for @script.sql usage
+-- =====================================================
+
+SET PAGESIZE 1000
+SET LINESIZE 300
+SET FEEDBACK OFF
+SET VERIFY OFF
+SET HEADING ON
+SET ECHO OFF
+SET TRIMSPOOL ON
+SET TERMOUT ON
+
+-- Column formatting (for clean output)
+COLUMN DATABASE_NAME FORMAT A15
+COLUMN DATABASE_ID FORMAT 9999999999
+COLUMN CREATED_DATE FORMAT A20
+COLUMN LOG_MODE FORMAT A15
+COLUMN OPEN_MODE FORMAT A20
+COLUMN DATABASE_ROLE FORMAT A20
+COLUMN PLATFORM FORMAT A30
+COLUMN VERSION FORMAT A10
+
+COLUMN FILE_ID FORMAT 9999
+COLUMN TABLESPACE_NAME FORMAT A20
+COLUMN FILE_PATH FORMAT A80 WORD_WRAPPED
+COLUMN SIZE_GB FORMAT 999.99
+COLUMN STATUS FORMAT A10
+COLUMN AUTOEXTEND FORMAT A10
+
+COLUMN CONTROL_FILE_PATH FORMAT A80
+COLUMN BLOCK_SIZE FORMAT 99999
+COLUMN FILE_SIZE_BLOCKS FORMAT 99999999
+COLUMN RECOVERY_DEST_FILE FORMAT A10
+
+COLUMN GROUP_NUMBER FORMAT 99
+COLUMN THREAD_NUMBER FORMAT 9
+COLUMN SEQUENCE_NUMBER FORMAT 99999
+COLUMN GROUP_STATUS FORMAT A12
+COLUMN LOG_FILE_PATH FORMAT A80
+COLUMN FILE_STATUS FORMAT A10
+
+COLUMN DEST_ID FORMAT 99
+COLUMN DESTINATION_PATH FORMAT A80 WORD_WRAPPED
+COLUMN BINDING FORMAT A10
+COLUMN TARGET FORMAT A10
+COLUMN ARCHIVER FORMAT A10
+COLUMN SCHEDULE FORMAT A20
+COLUMN PROCESS FORMAT A10
+
+COLUMN PARAMETER_NAME FORMAT A30
+COLUMN PARAMETER_VALUE FORMAT A80 WORD_WRAPPED
+COLUMN DESCRIPTION FORMAT A80 WORD_WRAPPED
+
+COLUMN DIRECTORY_NAME FORMAT A30
+COLUMN DIRECTORY_PATH FORMAT A80 WORD_WRAPPED
+COLUMN ORIGIN_CONTAINER_ID FORMAT 9999
+
+COLUMN DUMP_TYPE FORMAT A25
+COLUMN PATH FORMAT A100 WORD_WRAPPED
+
+COLUMN FILE_TYPE FORMAT A12
+COLUMN STORAGE_TYPE FORMAT A12
+COLUMN FILE_COUNT FORMAT 9999
+
+COLUMN BASE_PATH FORMAT A30
+COLUMN LOG_TYPE FORMAT A15
+COLUMN LOG_PATH FORMAT A100 WORD_WRAPPED
+
+COLUMN DISKGROUP_NAME FORMAT A30
+COLUMN STATE FORMAT A10
+COLUMN REDUNDANCY_TYPE FORMAT A15
+COLUMN TOTAL_GB FORMAT 9999.99
+COLUMN FREE_GB FORMAT 9999.99
+COLUMN USED_GB FORMAT 9999.99
+COLUMN USED_PERCENT FORMAT 999.99
+
+COLUMN INFO_TYPE FORMAT A30
+COLUMN VALUE FORMAT A60 WORD_WRAPPED
+
+COLUMN BACKUP_PIECE_PATH FORMAT A100 WORD_WRAPPED
+COLUMN MEDIA_TYPE FORMAT A10
+COLUMN START_TIME FORMAT A25
+COLUMN COMPLETION_TIME FORMAT A25
+COLUMN SIZE_GB FORMAT 999.99
+
+COLUMN TABLESPACE_NAME FORMAT A25
+COLUMN TOTAL_SIZE_GB FORMAT 999.99
+COLUMN USED_SIZE_GB FORMAT 999.99
+COLUMN FREE_SIZE_GB FORMAT 999.99
+COLUMN USED_PERCENT FORMAT 999.99
+
+COLUMN CHECK_TYPE FORMAT A25
+COLUMN STATUS FORMAT A20
+
+-- Timestamp of Report Generation
+SELECT TO_CHAR(SYSDATE, 'DD-MON-YYYY HH24:MI:SS') AS REPORT_TIME FROM DUAL;
+
+-- 1. DATABASE INFORMATION
+SELECT 
+    d.name AS database_name,
+    d.dbid AS database_id,
+    d.created AS created_date,
+    d.log_mode,
+    d.open_mode,
+    d.database_role,
+    d.platform_name AS platform,
+    i.version AS version,
+    d.flashback_on,
+    d.force_logging,
+    d.current_scn
+FROM v$database d, v$instance i;
+
+-- 2. DATAFILE LOCATIONS
+SELECT 
+    file_id AS FILE_ID,
+    tablespace_name AS TABLESPACE_NAME,
+    file_name AS FILE_PATH,
+    ROUND(bytes/1024/1024/1024,2) AS SIZE_GB,
+    status AS STATUS,
+    autoextensible AS AUTOEXTEND
+FROM dba_data_files
+ORDER BY tablespace_name, file_id;
+
+-- 3. TEMPFILE LOCATIONS
+SELECT 
+    file_id AS FILE_ID,
+    tablespace_name AS TABLESPACE_NAME,
+    file_name AS FILE_PATH,
+    ROUND(bytes/1024/1024/1024,2) AS SIZE_GB,
+    status AS STATUS,
+    autoextensible AS AUTOEXTEND
+FROM dba_temp_files
+ORDER BY tablespace_name, file_id;
+
+-- 4. CONTROL FILE LOCATIONS
+SELECT 
+    name AS CONTROL_FILE_PATH,
+    status AS STATUS,
+    is_recovery_dest_file AS RECOVERY_DEST_FILE,
+    block_size AS BLOCK_SIZE,
+    file_size_blks AS FILE_SIZE_BLOCKS
+FROM v$controlfile;
+
+-- 5. REDO LOG FILE LOCATIONS
+SELECT 
+    l.group# AS GROUP_NUMBER,
+    l.thread# AS THREAD_NUMBER,
+    l.sequence# AS SEQUENCE_NUMBER,
+    l.status AS GROUP_STATUS,
+    lf.member AS LOG_FILE_PATH,
+    lf.status AS FILE_STATUS,
+    ROUND(l.bytes/1024/1024,2) AS SIZE_MB
+FROM v$log l, v$logfile lf
+WHERE l.group# = lf.group#
+ORDER BY l.group#, lf.member;
+
+-- 6. ARCHIVE LOG DESTINATIONS
+SELECT 
+    dest_id AS DEST_ID,
+    destination AS DESTINATION_PATH,
+    status AS STATUS,
+    binding AS BINDING,
+    target AS TARGET,
+    archiver AS ARCHIVER,
+    schedule AS SCHEDULE,
+    process AS PROCESS
+FROM v$archive_dest
+WHERE status != 'INACTIVE' OR destination IS NOT NULL;
+
+-- 7. DIAGNOSTIC DESTINATION
+SELECT 
+    name AS PARAMETER_NAME,
+    value AS PARAMETER_VALUE,
+    description AS DESCRIPTION
+FROM v$parameter 
+WHERE name IN ('diagnostic_dest', 'background_dump_dest', 'user_dump_dest', 'core_dump_dest');
+
+-- 8. FLASH RECOVERY AREA (FRA) DETAILS
+SELECT 
+    name AS PARAMETER_NAME,
+    value AS PARAMETER_VALUE
+FROM v$parameter 
+WHERE name IN ('db_recovery_file_dest', 'db_recovery_file_dest_size');
+
+SELECT 
+    'FRA' AS FILE_TYPE,
+    ROUND((space_used / space_limit) * 100, 2) AS PERCENT_USED,
+    ROUND(space_used / 1024 / 1024 / 1024, 2) AS USED_GB,
+    ROUND(space_limit / 1024 / 1024 / 1024, 2) AS LIMIT_GB,
+    number_of_files AS NUMBER_OF_FILES
+FROM v$recovery_file_dest
+WHERE space_used > 0;
+
+-- 9. DIRECTORY OBJECTS
+SELECT 
+    directory_name AS DIRECTORY_NAME,
+    directory_path AS DIRECTORY_PATH,
+    origin_con_id AS ORIGIN_CONTAINER_ID
+FROM dba_directories
+ORDER BY directory_name;
+
+-- 10. DUMP DESTINATIONS
+SELECT 
+    'BACKGROUND_DUMP_DEST' AS DUMP_TYPE,
+    value AS PATH
+FROM v$parameter WHERE name = 'background_dump_dest'
+UNION ALL
+SELECT 
+    'USER_DUMP_DEST' AS DUMP_TYPE,
+    value AS PATH
+FROM v$parameter WHERE name = 'user_dump_dest'
+UNION ALL
+SELECT 
+    'CORE_DUMP_DEST' AS DUMP_TYPE,
+    value AS PATH
+FROM v$parameter WHERE name = 'core_dump_dest'
+UNION ALL
+SELECT 
+    'DIAGNOSTIC_DEST' AS DUMP_TYPE,
+    value AS PATH
+FROM v$parameter WHERE name = 'diagnostic_dest';
+
+-- 11. AUDIT FILE DESTINATION
+SELECT 
+    name AS PARAMETER_NAME,
+    value AS PARAMETER_VALUE
+FROM v$parameter 
+WHERE name IN ('audit_file_dest', 'audit_trail', 'audit_sys_operations');
+
+-- 12. SPFILE AND PFILE LOCATIONS
+SELECT 
+    'SPFILE' AS FILE_TYPE,
+    value AS FILE_PATH
+FROM v$parameter 
+WHERE name = 'spfile'
+UNION ALL
+SELECT 
+    'PFILE' AS FILE_TYPE,
+    value || '/dbs/init' || (SELECT value FROM v$parameter WHERE name = 'db_name') || '.ora' AS FILE_PATH
+FROM v$parameter 
+WHERE name = 'oracle_home';
+
+-- 13. ORACLE HOME AND BASE INFORMATION
+SELECT 
+    name AS PARAMETER_NAME,
+    value AS PARAMETER_VALUE
+FROM v$parameter 
+WHERE name IN ('oracle_home', 'oracle_base');
+
+-- 14. NETWORK CONFIGURATION INFORMATION
+SELECT 
+    'TNS_ADMIN' AS CONFIG_TYPE,
+    value AS PATH
+FROM v$parameter WHERE name = 'tns_admin'
+UNION ALL
+SELECT 
+    'ORACLE_HOME/network/admin' AS CONFIG_TYPE,
+    value || '/network/admin' AS PATH
+FROM v$parameter WHERE name = 'oracle_home';
+
+-- 15. RECENT BACKUP PIECE LOCATIONS (RMAN)
+SELECT 
+    bp.handle AS BACKUP_PIECE_PATH,
+    bp.media AS MEDIA_TYPE,
+    TO_CHAR(bp.start_time, 'DD-MON-YYYY HH24:MI:SS') AS START_TIME,
+    TO_CHAR(bp.completion_time, 'DD-MON-YYYY HH24:MI:SS') AS COMPLETION_TIME,
+    ROUND(bp.bytes/1024/1024/1024,2) AS SIZE_GB,
+    bp.status AS STATUS
+FROM v$backup_piece bp
+WHERE bp.start_time > SYSDATE - 7
+ORDER BY bp.start_time DESC;
+
+-- 16. DATABASE FILE STORAGE TYPE
+SELECT 
+    'DATAFILES' AS FILE_TYPE,
+    CASE 
+        WHEN file_name LIKE '+%' THEN 'ASM'
+        WHEN file_name LIKE '/dev/%' THEN 'RAW DEVICE'
+        ELSE 'FILESYSTEM'
+    END AS STORAGE_TYPE,
+    COUNT(*) AS FILE_COUNT
+FROM dba_data_files
+GROUP BY CASE 
+    WHEN file_name LIKE '+%' THEN 'ASM'
+    WHEN file_name LIKE '/dev/%' THEN 'RAW DEVICE'
+    ELSE 'FILESYSTEM'
+END
+UNION ALL
+SELECT 
+    'TEMPFILES' AS FILE_TYPE,
+    CASE 
+        WHEN file_name LIKE '+%' THEN 'ASM'
+        WHEN file_name LIKE '/dev/%' THEN 'RAW DEVICE'
+        ELSE 'FILESYSTEM'
+    END AS STORAGE_TYPE,
+    COUNT(*) AS FILE_COUNT
+FROM dba_temp_files
+GROUP BY CASE 
+    WHEN file_name LIKE '+%' THEN 'ASM'
+    WHEN file_name LIKE '/dev/%' THEN 'RAW DEVICE'
+    ELSE 'FILESYSTEM'
+END;
+
+-- 17. IMPORTANT ORACLE HOME SUBDIRECTORIES
+SELECT 
+    'ORACLE_HOME' AS BASE_PATH,
+    value AS PATH
+FROM v$parameter WHERE name = 'oracle_home'
+UNION ALL
+SELECT 
+    'BIN Directory' AS BASE_PATH,
+    value || '/bin' AS PATH
+FROM v$parameter WHERE name = 'oracle_home'
+UNION ALL
+SELECT 
+    'LIB Directory' AS BASE_PATH,
+    value || '/lib' AS PATH
+FROM v$parameter WHERE name = 'oracle_home'
+UNION ALL
+SELECT 
+    'RDBMS/ADMIN Directory' AS BASE_PATH,
+    value || '/rdbms/admin' AS PATH
+FROM v$parameter WHERE name = 'oracle_home'
+UNION ALL
+SELECT 
+    'NETWORK/ADMIN Directory' AS BASE_PATH,
+    value || '/network/admin' AS PATH
+FROM v$parameter WHERE name = 'oracle_home'
+UNION ALL
+SELECT 
+    'DBS Directory' AS BASE_PATH,
+    value || '/dbs' AS PATH
+FROM v$parameter WHERE name = 'oracle_home';
+
+-- 18. ALERT LOG LOCATION
+SELECT 
+    'ALERT_LOG' AS LOG_TYPE,
+    value || '/diag/rdbms/' || LOWER((SELECT value FROM v$parameter WHERE name = 'db_name')) || 
+    '/' || (SELECT value FROM v$parameter WHERE name = 'instance_name') || '/trace/alert_' || 
+    (SELECT value FROM v$parameter WHERE name = 'instance_name') || '.log' AS LOG_PATH
+FROM v$parameter WHERE name = 'diagnostic_dest'
+UNION ALL
+SELECT 
+    'TRACE_DIRECTORY' AS LOG_TYPE,
+    value || '/diag/rdbms/' || LOWER((SELECT value FROM v$parameter WHERE name = 'db_name')) || 
+    '/' || (SELECT value FROM v$parameter WHERE name = 'instance_name') || '/trace' AS LOG_PATH
+FROM v$parameter WHERE name = 'diagnostic_dest';
+
+-- 19. WALLET LOCATION (TDE CONFIGURATION)
+SELECT 
+    name AS PARAMETER_NAME,
+    value AS PARAMETER_VALUE
+FROM v$parameter 
+WHERE name IN ('wallet_root', 'tde_configuration');
+
+SELECT 
+    'TDE_STATUS' AS CHECK_TYPE,
+    CASE 
+        WHEN COUNT(*) > 0 THEN 'TDE CONFIGURED'
+        ELSE 'TDE NOT CONFIGURED'
+    END AS STATUS
+FROM v$encryption_wallet;
+
+-- 20. ASM DISKGROUP INFORMATION
+SELECT 
+    'ASM_USAGE_CHECK' AS CHECK_TYPE,
+    CASE 
+        WHEN COUNT(*) > 0 THEN 'ASM IS USED'
+        ELSE 'ASM NOT USED'
+    END AS STATUS
+FROM dba_data_files 
+WHERE file_name LIKE '+%';
+
+SELECT 
+    name AS DISKGROUP_NAME,
+    state AS STATE,
+    type AS REDUNDANCY_TYPE,
+    ROUND(total_mb/1024,2) AS TOTAL_GB,
+    ROUND(free_mb/1024,2) AS FREE_GB,
+    ROUND((total_mb-free_mb)/1024,2) AS USED_GB,
+    ROUND(((total_mb-free_mb)/total_mb)*100,2) AS USED_PERCENT
+FROM v$asm_diskgroup;
+
+-- 21. ADDITIONAL SYSTEM INFORMATION
+SELECT 
+    'INSTANCE_NAME' AS INFO_TYPE,
+    value AS VALUE
+FROM v$parameter WHERE name = 'instance_name'
+UNION ALL
+SELECT 
+    'DB_BLOCK_SIZE' AS INFO_TYPE,
+    value AS VALUE
+FROM v$parameter WHERE name = 'db_block_size'
+UNION ALL
+SELECT 
+    'COMPATIBLE' AS INFO_TYPE,
+    value AS VALUE
+FROM v$parameter WHERE name = 'compatible'
+UNION ALL
+SELECT 
+    'MEMORY_TARGET' AS INFO_TYPE,
+    value AS VALUE
+FROM v$parameter WHERE name = 'memory_target'
+UNION ALL
+SELECT 
+    'SGA_TARGET' AS INFO_TYPE,
+    value AS VALUE
+FROM v$parameter WHERE name = 'sga_target'
+UNION ALL
+SELECT 
+    'PGA_AGGREGATE_TARGET' AS INFO_TYPE,
+    value AS VALUE
+FROM v$parameter WHERE name = 'pga_aggregate_target';
+
+-- 22. TABLESPACE USAGE SUMMARY
+SELECT 
+    df.tablespace_name AS TABLESPACE_NAME,
+    ROUND(df.total_size_gb,2) AS TOTAL_SIZE_GB,
+    ROUND(df.total_size_gb - NVL(fs.free_size_gb,0),2) AS USED_SIZE_GB,
+    ROUND(NVL(fs.free_size_gb,0),2) AS FREE_SIZE_GB,
+    ROUND(((df.total_size_gb - NVL(fs.free_size_gb,0))/df.total_size_gb)*100,2) AS USED_PERCENT
+FROM 
+    (SELECT tablespace_name, SUM(bytes)/1024/1024/1024 AS total_size_gb
+     FROM dba_data_files GROUP BY tablespace_name) df
+LEFT JOIN 
+    (SELECT tablespace_name, SUM(bytes)/1024/1024/1024 AS free_size_gb
+     FROM dba_free_space GROUP BY tablespace_name) fs
+ON df.tablespace_name = fs.tablespace_name;
+
+-- END OF SCRIPT
+```
