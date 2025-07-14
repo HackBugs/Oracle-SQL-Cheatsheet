@@ -1,3 +1,7 @@
+```
+tail -100f /u01/app/oracle/diag/rdbms/oradb/oradb/trace/alert_oradb.log
+```
+
 ## Oracle-Cheatsheet
 - Author : HackBugs , Shahnwaj Aalam
 **ORACLE OBA ADMIN - SHEAT SHEET**
