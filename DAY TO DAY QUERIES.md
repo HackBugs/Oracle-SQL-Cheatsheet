@@ -121,6 +121,116 @@ LEFT JOIN
 ON df.file_id = fs.file_id;
 ```
 
+### Oracle Segment & Space Usage Report – Full SQL Script (Formatted)
+```
+SET LINESIZE 200
+SET PAGESIZE 100
+COLUMN tablespace_name FORMAT A20
+COLUMN segment_name FORMAT A30
+COLUMN segment_type FORMAT A15
+COLUMN file_name FORMAT A60
+COLUMN owner FORMAT A15
+COLUMN name FORMAT A30
+
+PROMPT ==========================================
+PROMPT 🔸 1. Total Database Size (Used Space)
+PROMPT ==========================================
+
+SELECT ROUND(SUM(bytes)/1024/1024/1024, 2) AS db_size_gb
+FROM dba_segments;
+
+PROMPT ==========================================
+PROMPT 🔸 2. Tablespace Usage Summary
+PROMPT ==========================================
+
+SELECT tablespace_name,
+       ROUND(used_space*8/1024, 2) AS used_mb,
+       ROUND((tablespace_size - used_space)*8/1024, 2) AS free_mb,
+       ROUND(tablespace_size*8/1024, 2) AS total_mb,
+       ROUND((used_space/tablespace_size)*100, 2) AS pct_used
+FROM dba_tablespace_usage_metrics
+ORDER BY pct_used DESC;
+
+PROMPT ==========================================
+PROMPT 🔸 3. Datafile Usage Summary
+PROMPT ==========================================
+
+SELECT df.tablespace_name,
+       df.file_name,
+       ROUND(df.bytes/1024/1024, 2) AS total_mb,
+       ROUND((df.bytes - NVL(fs.free_bytes,0))/1024/1024, 2) AS used_mb,
+       ROUND(NVL(fs.free_bytes,0)/1024/1024, 2) AS free_mb,
+       ROUND(((df.bytes - NVL(fs.free_bytes,0)) / df.bytes) * 100, 2) AS pct_used
+FROM dba_data_files df
+LEFT JOIN (
+    SELECT file_id, SUM(bytes) AS free_bytes 
+    FROM dba_free_space 
+    GROUP BY file_id
+) fs
+ON df.file_id = fs.file_id
+ORDER BY pct_used DESC;
+
+PROMPT ==========================================
+PROMPT 🔸 4. Temp Tablespace Usage
+PROMPT ==========================================
+
+SELECT tablespace_name,
+       ROUND(SUM(bytes_used)/1024/1024,2) AS used_mb,
+       ROUND(SUM(bytes_free)/1024/1024,2) AS free_mb
+FROM v$temp_space_header
+GROUP BY tablespace_name;
+
+PROMPT ==========================================
+PROMPT 🔸 5. Undo Tablespace Usage
+PROMPT ==========================================
+
+SELECT tablespace_name,
+       ROUND(SUM(bytes)/1024/1024, 2) AS total_mb
+FROM dba_undo_extents
+GROUP BY tablespace_name;
+
+PROMPT ==========================================
+PROMPT 🔸 6. FRA (Fast Recovery Area) Usage
+PROMPT ==========================================
+
+COLUMN name FORMAT A40
+SELECT name,
+       ROUND(space_limit/1024/1024) AS limit_mb,
+       ROUND(space_used/1024/1024) AS used_mb,
+       ROUND((space_used/space_limit)*100, 2) AS pct_used
+FROM v$recovery_file_dest;
+
+PROMPT ==========================================
+PROMPT 🔸 7. ASM Disk Group Usage (if using ASM)
+PROMPT ==========================================
+
+SELECT name,
+       ROUND(total_mb,2) AS total_mb,
+       ROUND(free_mb,2) AS free_mb,
+       ROUND((total_mb - free_mb)/total_mb*100,2) AS pct_used
+FROM v$asm_diskgroup;
+
+PROMPT ==========================================
+PROMPT 🔸 8. Top 10 Largest Segments (Tables & Indexes)
+PROMPT ==========================================
+
+SELECT owner, segment_name, segment_type,
+       ROUND(bytes/1024/1024, 2) AS size_mb
+FROM dba_segments
+ORDER BY bytes DESC
+FETCH FIRST 10 ROWS ONLY;
+
+PROMPT ==========================================
+PROMPT 🔸 9. Segment Usage by Tablespace
+PROMPT ==========================================
+
+SELECT tablespace_name,
+       ROUND(SUM(bytes)/1024/1024/1024, 2) AS total_gb
+FROM dba_segments
+GROUP BY tablespace_name
+ORDER BY total_gb DESC;
+```
+
 <hr>
 
 > # **Oracle DBA interview**
