@@ -1,3 +1,11 @@
+- [AhmedBarakaDBA](https://www.youtube.com/@AhmedBarakaDBA)
+- [Oracle Database 19c - Baraka](https://youtu.be/DFbOmxoWrQ8?si=_x2ZKJmwSth2E_Qi)
+- [Dataguard](https://youtu.be/FK4_1xanJEM?si=4i-cZGFW0LfIJIe0)
+- [Datagurad - Baraka](https://youtu.be/vyqJoXeyzIo?si=CPbcIFehAobi1irO)
+- [Oracle RAC - Baraka](https://youtu.be/AwlqJMtMbGI?si=0Qn6sv4D_xEJNm0x)
+- [Oracle Golden Gate - Baraka](https://youtu.be/1leHLDCyEU8?si=BWrs9zcg7dllmuFO)
+- [AWR Report](https://youtu.be/QPJL1fswbO4?si=WT6I-QJ0sYa89Iq7)
+
 > # **Oracle Performance Tuning** aur **Memory Architecture** ka important part hai — interview me bhi poocha jaata hai.
 
 
