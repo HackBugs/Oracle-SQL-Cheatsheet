@@ -1,3 +1,13 @@
+
+### Check SMON / PMNON
+```
+ps -ef | grep pmon
+ps -ef | grep smon
+
+free -th
+df -Th
+```
+
 ###  Alert log check:
 ```
 tail -100f /u01/app/oracle/diag/rdbms/oradb/oradb/trace/alert_oradb.log
