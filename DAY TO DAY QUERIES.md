@@ -8,6 +8,26 @@ free -th
 df -Th
 ```
 
+### Checking for backup logs in known locations...
+```
+ls -l /u01/app/oracle/backup/logs/
+ls -l /home/oracle/logs/
+ls -l /backup/logs/
+ls -l /rman/logs/
+
+# 🔸 RMAN ya Data Pump backups ke logs rakhne ke liye commonly used Oracle base backup directory
+ls -l /u01/app/oracle/backup/logs/     # ← Oracle Home ke andar custom backup logs ka folder
+
+# 🔸 Oracle OS user ke home directory me rakhe gaye scripts & logs (manual ya cron jobs ke liye)
+ls -l /home/oracle/logs/               # ← Oracle user ke personal log files, scripts output, etc.
+
+# 🔸 General backup mount point (external disk ya NFS pe mounted hota hai)
+ls -l /backup/logs/                    # ← Primary RMAN log storage location (standard practice)
+
+# 🔸 Dedicated directory agar RMAN ke scripts ya logs alag se rakhne ka system follow kar rahe ho
+ls -l /rman/logs/                      # ← RMAN specific logs, specially if separate maintained
+```
+
 ###  Alert log check:
 ```
 tail -100f /u01/app/oracle/diag/rdbms/oradb/oradb/trace/alert_oradb.log
