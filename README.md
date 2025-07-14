@@ -6,6 +6,10 @@
 [DBA_Class](https://hackbugs.github.io/Oracle_Webiste_Script/)
 ---
 
+- [1. For Oracle grid and rdbms 19c software check below link:](https://www.oracle.com/in/database/technologies/oracle19c-linux-downloads.html)
+- [2.Download Oracle Linux 7.8 from below link:](https://yum.oracle.com/oracle-linux-isos.html)
+- [3. Download virtualbox from below link:](https://www.virtualbox.org/wiki/Downloads)
+
 **RMAN Backup:**
 - Consistent backup: Cold backup - when database is offline
 - Inconsistent backup: Hot backup - when database is online
