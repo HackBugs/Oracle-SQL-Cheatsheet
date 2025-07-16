@@ -128,7 +128,14 @@ sqlplus system/Oracle123@ORCLDB
 ## ✅ Final `.bat` File (for Windows)
 
 Yeh code copy karo aur **`connect_oracle.bat`** naam se save karo:
-
+```bat
+@echo off
+cls
+REM Set full path to sqlplus explicitly
+"C:\oracle\product\19.0.0\client_1\bin\sqlplus.exe" system/admin@//192.168.1.124:1521/oradb.localdomain
+echo.
+pause
+```
 ```bat
 @echo off
 REM Set Oracle Client bin path if not in PATH
