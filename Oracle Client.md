@@ -1,4 +1,4 @@
-## ✅ Step-by-Step Guide: Connect Oracle Client to Oracle Database via CMD
+> # ✅ Step-by-Step Guide: Connect Oracle Client to Oracle Database via CMD
 
 ---
 
@@ -91,8 +91,7 @@ sqlplus system/Oracle123@ORCLDB
 
 <hr>
 
-Bilkul bhai! 🔥
-Aapka purpose hai ek **`.bat` file banana**, jisko **double-click karte hi CMD open ho jaye aur Oracle SQL\*Plus se auto connect ho jaye**.
+> # **`.bat` file banana**, jisko **double-click karte hi CMD open ho jaye aur Oracle SQL\*Plus se auto connect ho jaye**.
 
 ---
 
@@ -149,12 +148,7 @@ pause
 
 <hr>
 
-Sahi pakde bhai! 😄
-Aapko **baar-baar `.bat` file ke folder me jaake click karna pad raha hai**, aur aap chahte ho:
-
-> ✅ **Ek click ya shortcut se Oracle SQL\*Plus se turant connect ho jaye.**
-
-To chaliye main aapko 3 options deta hoon:
+> # ✅ **Ek click ya shortcut se Oracle SQL\*Plus se turant connect ho jaye.**
 
 ---
 
