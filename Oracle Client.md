@@ -1,3 +1,34 @@
+Bilkul bhai! Yeh raha aapka poora content neatly packed **bash-style box** ke andar, taaki aap easily save ya share kar sako:
+
+```
+# ✅ Step 1: PERMANENT FIX — Add to PATH
+1. Right click "This PC" → Properties
+2. Advanced System Settings → Environment Variables
+3. In "System Variables", edit `Path`
+4. Click New → Add:
+   C:\oracle\product\19.0.0\client_1\bin
+5. OK → OK → Restart CMD
+
+# ✅ Step 2: Test if it works
+In CMD, run:
+sqlplus
+
+# Output should be:
+SQL*Plus: Release 19.0.0.0.0 - Production
+➡️ FIXED ✅
+
+##############################################
+# 💬 BONUS: Test via .bat file again
+##############################################
+
+@echo off
+sqlplus system/admin@//192.168.1.124:1521/oradb.localdomain
+pause
+
+# ➕ Double-click the .bat file to connect
+```
+
+
 > # ✅ Step-by-Step Guide: Connect Oracle Client to Oracle Database via CMD
 
 ---
