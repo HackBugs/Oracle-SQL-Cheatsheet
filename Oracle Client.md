@@ -1,4 +1,3 @@
-Bilkul bhai! Yeh raha aapka poora content neatly packed **bash-style box** ke andar, taaki aap easily save ya share kar sako:
 
 ```
 # ✅ Step 1: PERMANENT FIX — Add to PATH
