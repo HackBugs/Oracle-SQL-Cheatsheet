@@ -112,4 +112,136 @@ WHERE status = 'EXECUTING';
 
 Agar chaho toh main ek dummy table ke saath aur bhi join-heavy ya aggregation-heavy queries de sakta ho for advanced practice.
 
-Batao aur chahiye toh!
+<hr>
+
+Bahut badhiya! Ab main aapko **dummy tables ke saath join-heavy aur aggregation-heavy advanced SQL queries** dunga — ye sab OEM me **SQL Monitor** tab me definitely dikhenge agar aap Oracle Enterprise Manager ya Cloud Control use kar rahe ho.
+
+---
+
+## 🏗️ Step 1: Dummy Tables Bana Lo (Base for Practice)
+
+### 🔹 Table 1: `employees`
+
+```sql
+CREATE TABLE employees AS
+SELECT
+  ROWNUM AS emp_id,
+  'Emp_' || ROWNUM AS emp_name,
+  MOD(ROWNUM, 10) + 1 AS dept_id,
+  TRUNC(DBMS_RANDOM.VALUE(30000, 100000)) AS salary,
+  TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, 1000)) AS hire_date
+FROM all_objects
+WHERE ROWNUM <= 100000;
+```
+
+---
+
+### 🔹 Table 2: `departments`
+
+```sql
+CREATE TABLE departments AS
+SELECT
+  LEVEL AS dept_id,
+  'Dept_' || LEVEL AS dept_name,
+  'Location_' || MOD(LEVEL, 5) AS location
+FROM dual
+CONNECT BY LEVEL <= 20;
+```
+
+---
+
+## ✅ OEM Monitor Friendly Advanced SQL Queries
+
+---
+
+### 🔸 1. **JOIN + AGGREGATION (Group By Department)**
+
+```sql
+SELECT d.dept_name, COUNT(e.emp_id) AS total_emps, ROUND(AVG(e.salary), 2) AS avg_salary
+FROM employees e
+JOIN departments d ON e.dept_id = d.dept_id
+GROUP BY d.dept_name;
+```
+
+> Ye query join + aggregation karti hai — **SQL Monitor tab me dikhegi**.
+
+---
+
+### 🔸 2. **Nested Aggregation + Subquery**
+
+```sql
+SELECT dept_id, MAX(avg_sal) AS max_avg_salary
+FROM (
+  SELECT dept_id, TRUNC(AVG(salary)) AS avg_sal
+  FROM employees
+  GROUP BY dept_id
+)
+GROUP BY dept_id;
+```
+
+---
+
+### 🔸 3. **Complex Join + Filter**
+
+```sql
+SELECT e.emp_name, d.dept_name, e.salary
+FROM employees e
+JOIN departments d ON e.dept_id = d.dept_id
+WHERE e.salary > (
+  SELECT AVG(salary)
+  FROM employees
+)
+AND d.location = 'Location_2';
+```
+
+---
+
+### 🔸 4. **Self Join (Heavy Join on Employees)**
+
+```sql
+SELECT a.emp_id AS emp1, b.emp_id AS emp2, a.salary - b.salary AS salary_diff
+FROM employees a
+JOIN employees b ON a.dept_id = b.dept_id
+WHERE a.emp_id < 1000 AND b.emp_id < 1000;
+```
+
+> Self join zyada heavy lagta hai SQL monitor ke liye — esp. agar rows > 10k ho.
+
+---
+
+### 🔸 5. **Window Function (Analytics Function)**
+
+```sql
+SELECT emp_id, emp_name, dept_id, salary,
+       RANK() OVER (PARTITION BY dept_id ORDER BY salary DESC) AS dept_rank
+FROM employees
+WHERE dept_id <= 10;
+```
+
+---
+
+### 🔸 6. **Join + Aggregation + Order By**
+
+```sql
+SELECT d.dept_name, COUNT(*) AS emp_count
+FROM employees e
+JOIN departments d ON e.dept_id = d.dept_id
+GROUP BY d.dept_name
+ORDER BY emp_count DESC;
+```
+
+---
+
+## 🧠 OEM me Monitor kaise karoge:
+
+* `Performance → SQL Monitoring` → dekho running ya recently executed queries
+* Ya query ke `sql_id` se check karo:
+
+```sql
+SELECT sql_id, status, sql_text FROM v$sql_monitor WHERE status = 'EXECUTING';
+```
+
+---
+
+Agar chaho to main in queries ko **stored procedures** ya **PL/SQL block** me daal ke aur bhi advanced practice ke liye ready kar sakta hoon.
+
