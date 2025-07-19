@@ -1,4 +1,4 @@
-# **OEM (Oracle Enterprise Manager)** me **SQL Monitoring** ke liye queries practice karna chahte ho – toh main aapko **intentionally slow aur resource-consuming SQL queries** dunga jo **SQL Monitor** me dikhenge.
+# 1. **OEM (Oracle Enterprise Manager)** me **SQL Monitoring** ke liye queries practice karna chahte ho – toh main aapko **intentionally slow aur resource-consuming SQL queries** dunga jo **SQL Monitor** me dikhenge.
 
 OEM me koi SQL tab monitor hoti hai jab:
 
@@ -114,7 +114,7 @@ Agar chaho toh main ek dummy table ke saath aur bhi join-heavy ya aggregation-he
 
 <hr>
 
-Bahut badhiya! Ab main aapko **dummy tables ke saath join-heavy aur aggregation-heavy advanced SQL queries** dunga — ye sab OEM me **SQL Monitor** tab me definitely dikhenge agar aap Oracle Enterprise Manager ya Cloud Control use kar rahe ho.
+# 2. **dummy tables ke saath join-heavy aur aggregation-heavy advanced SQL queries** dunga — ye sab OEM me **SQL Monitor** tab me definitely dikhenge agar aap Oracle Enterprise Manager ya Cloud Control use kar rahe ho.
 
 ---
 
@@ -244,4 +244,149 @@ SELECT sql_id, status, sql_text FROM v$sql_monitor WHERE status = 'EXECUTING';
 ---
 
 Agar chaho to main in queries ko **stored procedures** ya **PL/SQL block** me daal ke aur bhi advanced practice ke liye ready kar sakta hoon.
+
+<hr>
+
+# 3. Bahut badiya! Ab main aapko wahi join-heavy aur aggregation-heavy queries ko **Stored Procedures** aur **PL/SQL blocks** ke form me dunga — taaki aap:
+
+✅ Oracle SQL Monitor me unhe **track kar pao**
+✅ PL/SQL ka bhi real-world **practice kar sako**
+✅ Procedures ko baar-baar run karke performance observe kar sako
+
+---
+
+## 🔷 Step-by-Step: Stored Procedure + Monitoring Practice
+
+---
+
+### ✅ Step 1: Stored Procedure — `analyze_department_salaries`
+
+```sql
+CREATE OR REPLACE PROCEDURE analyze_department_salaries AS
+BEGIN
+  FOR rec IN (
+    SELECT d.dept_name, COUNT(e.emp_id) AS total_emps, ROUND(AVG(e.salary), 2) AS avg_salary
+    FROM employees e
+    JOIN departments d ON e.dept_id = d.dept_id
+    GROUP BY d.dept_name
+  )
+  LOOP
+    DBMS_OUTPUT.PUT_LINE('Dept: ' || rec.dept_name || ' | Total: ' || rec.total_emps || ' | Avg: ' || rec.avg_salary);
+  END LOOP;
+END;
+/
+```
+
+**Run it:**
+
+```sql
+EXEC analyze_department_salaries;
+```
+
+---
+
+### ✅ Step 2: Stored Procedure — `compare_employee_salaries`
+
+```sql
+CREATE OR REPLACE PROCEDURE compare_employee_salaries AS
+BEGIN
+  FOR rec IN (
+    SELECT a.emp_id AS emp1, b.emp_id AS emp2, a.salary - b.salary AS diff
+    FROM employees a
+    JOIN employees b ON a.dept_id = b.dept_id
+    WHERE a.emp_id < 500 AND b.emp_id < 500
+  )
+  LOOP
+    NULL; -- processing logic, ya DBMS_OUTPUT.PUT_LINE bhi use kar sakte ho
+  END LOOP;
+END;
+/
+```
+
+**Run it:**
+
+```sql
+EXEC compare_employee_salaries;
+```
+
+---
+
+### ✅ Step 3: Stored Procedure — `rank_employees_by_dept`
+
+```sql
+CREATE OR REPLACE PROCEDURE rank_employees_by_dept AS
+BEGIN
+  FOR rec IN (
+    SELECT emp_id, emp_name, dept_id, salary,
+           RANK() OVER (PARTITION BY dept_id ORDER BY salary DESC) AS dept_rank
+    FROM employees
+    WHERE dept_id <= 10
+  )
+  LOOP
+    NULL; -- Output suppress to increase runtime for monitoring
+  END LOOP;
+END;
+/
+```
+
+**Run it:**
+
+```sql
+EXEC rank_employees_by_dept;
+```
+
+---
+
+## ✅ Optional: Add Wait/Delay for Slowness (For Monitoring Trigger)
+
+```sql
+-- Add in any loop for delay
+DBMS_LOCK.SLEEP(0.1);  -- 0.1 second delay per loop
+```
+
+Example:
+
+```sql
+FOR rec IN (...) LOOP
+  DBMS_LOCK.SLEEP(0.01);
+END LOOP;
+```
+
+---
+
+## 🔎 OEM Monitoring Tips:
+
+* Run procedures from `sqlplus`, `SQL Developer`, or any tool
+* Go to **Enterprise Manager → Performance → SQL Monitoring**
+* Look for your SQL (especially if it runs > 5 seconds or uses lots of CPU)
+* Use:
+
+```sql
+SELECT sql_id, status, sql_text FROM v$sql_monitor WHERE status = 'EXECUTING';
+```
+
+---
+
+## 🔧 Bonus: Procedure to Insert Logs (for real practice)
+
+```sql
+CREATE OR REPLACE PROCEDURE log_department_summary AS
+BEGIN
+  INSERT INTO dept_summary_log (dept_name, emp_count, avg_salary)
+  SELECT d.dept_name, COUNT(e.emp_id), ROUND(AVG(e.salary), 2)
+  FROM employees e
+  JOIN departments d ON e.dept_id = d.dept_id
+  GROUP BY d.dept_name;
+
+  COMMIT;
+END;
+/
+```
+
+> Assume `dept_summary_log` is a custom log table you create.
+
+---
+
+Aap chahein toh main `PL/SQL package`, `function`, ya `parallel execution` versions bhi bana sakta hoon for monitoring practice.
+
 
