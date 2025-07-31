@@ -1,6 +1,17 @@
 ## [Oracle Database 19c Client (19.3) for Microsoft Windows x64 (64-bit) ](https://www.oracle.com/in/database/technologies/oracle19c-windows-downloads.html)
       WINDOWS.X64_193000_client.zip - Download this file
 
+## Auto startup oracle clinet terminal - .bat script
+
+```
+@echo off
+cls
+REM Set full path to sqlplus explicitly
+"C:\oracle\product\19.0.0\client_1\bin\sqlplus.exe" system/admin@//192.168.1.124:1521/oradb.localdomain
+echo.
+pause
+```
+
 
 ```
 # ✅ Step 1: PERMANENT FIX — Add to PATH
