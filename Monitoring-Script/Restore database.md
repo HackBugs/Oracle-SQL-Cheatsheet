@@ -5,6 +5,22 @@
 
 ---
 
+```
+SHUTDOWN IMMEDIATE;
+
+STARTUP NOMOUNT;
+
+RMAN> RESTORE CONTROLFILE;
+
+ALTER DATABASE MOUNT;
+
+RMAN> RESTORE DATABASE;
+
+RMAN> RECOVER DATABASE;
+
+ALTER DATABASE OPEN RESETLOGS;
+```
+
 ### 1. **Accidentally Deleted Datafile Recovery**
 
 * Check current datafiles:
