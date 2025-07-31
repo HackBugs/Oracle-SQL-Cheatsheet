@@ -1,5 +1,7 @@
 > ##  **Oracle DBA Checklist**, Daily, Weekly, Monthly, Quarterly, and One-Time activities:
 
+[Link](https://www.scribd.com/document/329510232/Day-to-Day-Activities-of-Oracle-DBA-Checklist)
+
 ---
 
 ## ✅ **Day-to-Day Activities of Oracle DBA – Full Checklist**
