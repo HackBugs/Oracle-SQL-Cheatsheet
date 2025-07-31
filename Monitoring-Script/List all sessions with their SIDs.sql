@@ -10,3 +10,7 @@ FROM
     v$session
 ORDER BY
     sid;
+
+
+
+ALTER SYSTEM KILL SESSION '<sid>,<serial#>' IMMEDIATE;
