@@ -21,6 +21,83 @@ RMAN> RECOVER DATABASE;
 ALTER DATABASE OPEN RESETLOGS;
 ```
 
+```
+#!/bin/bash
+
+echo "Step 1: Shutdown Database if running"
+echo "sqlplus / as sysdba <<EOF
+SHUTDOWN IMMEDIATE;
+EXIT;
+EOF"
+
+echo "Step 2: Startup Database in NOMOUNT mode"
+echo "sqlplus / as sysdba <<EOF
+STARTUP NOMOUNT;
+EXIT;
+EOF"
+
+echo "Step 3: Restore Control File"
+echo "rman target / <<EOF
+RUN {
+  RESTORE CONTROLFILE FROM '<backup_location>';
+  ALTER DATABASE MOUNT;
+}
+EXIT;
+EOF"
+
+echo "Step 4: Restore Database Datafiles"
+echo "rman target / <<EOF
+RUN {
+  RESTORE DATABASE;
+}
+EXIT;
+EOF"
+
+echo "Step 5: Recover Database Datafiles"
+echo "rman target / <<EOF
+RUN {
+  RECOVER DATABASE;
+}
+EXIT;
+EOF"
+
+echo "Step 6: Open Database"
+echo "sqlplus / as sysdba <<EOF
+ALTER DATABASE OPEN;
+EXIT;
+EOF"
+
+echo "If required, Open Database with RESETLOGS"
+echo "sqlplus / as sysdba <<EOF
+ALTER DATABASE OPEN RESETLOGS;
+EXIT;
+EOF"
+
+echo "Step 7: Validate Backups"
+echo "rman target / <<EOF
+VALIDATE DATABASE;
+EXIT;
+EOF"
+
+echo "Step 8: Crosscheck Backups"
+echo "rman target / <<EOF
+CROSSCHECK BACKUP;
+EXIT;
+EOF"
+
+echo "Step 9: Delete Expired Backups"
+echo "rman target / <<EOF
+DELETE EXPIRED BACKUP;
+EXIT;
+EOF"
+
+echo "Step 10: Catalog Backup Pieces (if needed)"
+echo "rman target / <<EOF
+CATALOG START WITH '<backup_piece_location>';
+EXIT;
+EOF"
+```
+
 ### 1. **Accidentally Deleted Datafile Recovery**
 
 * Check current datafiles:
