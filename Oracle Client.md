@@ -1,3 +1,6 @@
+## [Oracle Database 19c Client (19.3) for Microsoft Windows x64 (64-bit) ](https://www.oracle.com/in/database/technologies/oracle19c-windows-downloads.html)
+      WINDOWS.X64_193000_client.zip - Download this file
+
 
 ```
 # ✅ Step 1: PERMANENT FIX — Add to PATH
