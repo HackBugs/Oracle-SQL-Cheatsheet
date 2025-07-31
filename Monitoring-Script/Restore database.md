@@ -1,10 +1,3 @@
-## Agar Oracle DBA (datafile, control file, archivelog, backup file) delete ho jaye, toh CMD for recovery:
----
-
-# Oracle Files Delete Hone Par Recovery Commands & Steps List
-
----
-
 ```
 SHUTDOWN IMMEDIATE;
 
@@ -97,6 +90,13 @@ CATALOG START WITH '<backup_piece_location>';
 EXIT;
 EOF"
 ```
+
+## Agar Oracle DBA (datafile, control file, archivelog, backup file) delete ho jaye, toh CMD for recovery:
+---
+
+# Oracle Files Delete Hone Par Recovery Commands & Steps List
+
+---
 
 ### 1. **Accidentally Deleted Datafile Recovery**
 
