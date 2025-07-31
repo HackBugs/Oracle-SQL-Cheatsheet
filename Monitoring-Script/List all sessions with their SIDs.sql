@@ -14,3 +14,5 @@ ORDER BY
 
 
 ALTER SYSTEM KILL SESSION '<sid>,<serial#>' IMMEDIATE;
+SELECT * FROM dba_blockers;
+SELECT * FROM dba_waiters;
