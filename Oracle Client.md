@@ -22,6 +22,14 @@ pause
    C:\oracle\product\19.0.0\client_1\bin
 5. OK → OK → Restart CMD
 
+System Variables
+-----------------
+ORACLE_HOME
+C:\Oracle\product\19.0.0\client_1
+
+ORACLE_PATH
+C:\oracle\product\19.0.0\client_1\bin
+
 # ✅ Step 2: Test if it works
 In CMD, run:
 sqlplus
