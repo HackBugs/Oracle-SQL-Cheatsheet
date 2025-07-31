@@ -14,6 +14,7 @@ pause
 
 
 ```
+install java JDK and set path
 # ✅ Step 1: PERMANENT FIX — Add to PATH
 1. Right click "This PC" → Properties
 2. Advanced System Settings → Environment Variables
