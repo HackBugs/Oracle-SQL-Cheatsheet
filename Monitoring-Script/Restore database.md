@@ -1,3 +1,99 @@
+* **User creation, privilege, tablespace** commands
+* **DDL (Data Definition Language)** commands
+* **ALTER, BACKUP, CHECK, MONITORING** commands
+* **Interview-oriented practical stuff**
+
+---
+
+### ✅ Bash-Style Oracle DBA Cheat Sheet (3 Yrs Experience)
+
+```bash
+# 🔐 USER MANAGEMENT
+CREATE USER test_user IDENTIFIED BY password;
+GRANT CONNECT, RESOURCE TO test_user;
+ALTER USER test_user ACCOUNT UNLOCK;
+DROP USER test_user CASCADE;
+
+# 👑 SYSTEM PRIVILEGES
+GRANT DBA TO test_user;
+REVOKE DBA FROM test_user;
+
+# 🗃️ TABLESPACE MANAGEMENT
+CREATE TABLESPACE userspace DATAFILE '/u01/app/oracle/oradata/ORCL/userspace01.dbf' SIZE 100M AUTOEXTEND ON;
+ALTER TABLESPACE userspace ADD DATAFILE '/u01/.../userspace02.dbf' SIZE 100M;
+DROP TABLESPACE userspace INCLUDING CONTENTS AND DATAFILES;
+
+# 🔄 DDL COMMANDS
+CREATE TABLE employees (id NUMBER, name VARCHAR2(50));
+ALTER TABLE employees ADD (email VARCHAR2(100));
+ALTER TABLE employees MODIFY (name VARCHAR2(100));
+ALTER TABLE employees DROP COLUMN email;
+DROP TABLE employees;
+
+# 🛠 OBJECT MANAGEMENT
+CREATE INDEX emp_idx ON employees(name);
+DROP INDEX emp_idx;
+CREATE VIEW emp_view AS SELECT * FROM employees;
+DROP VIEW emp_view;
+
+# 🔍 MONITORING & QUERIES
+SELECT username, account_status FROM dba_users;
+SELECT * FROM dba_tables WHERE owner='TEST_USER';
+SELECT * FROM v$session;
+SELECT * FROM v$database;
+SELECT * FROM dba_data_files;
+SELECT name, open_mode FROM v$database;
+
+# 🔄 RMAN BACKUP & ARCHIVE
+rman target /
+BACKUP DATABASE;
+BACKUP DATABASE PLUS ARCHIVELOG;
+LIST BACKUP;
+DELETE OBSOLETE;
+
+# 🧱 ARCHIVE LOG MANAGEMENT
+ARCHIVE LOG LIST;
+ALTER SYSTEM ARCHIVE LOG CURRENT;
+SHOW PARAMETER log_archive_dest;
+
+# 🚨 ALERT LOG & PERFORMANCE
+SHOW PARAMETER background_dump_dest;
+TAIL -f /u01/app/oracle/diag/.../alert_ORCL.log
+SELECT * FROM v$alert_log;  -- (in newer versions)
+
+# 📂 DIRECTORY OBJECTS (For Data Pump)
+CREATE OR REPLACE DIRECTORY dp_dir AS '/u01/exports';
+GRANT READ, WRITE ON DIRECTORY dp_dir TO test_user;
+
+# 📦 EXPORT / IMPORT (Data Pump)
+expdp test_user/password@ORCL DIRECTORY=dp_dir DUMPFILE=backup.dmp LOGFILE=export.log;
+impdp test_user/password@ORCL DIRECTORY=dp_dir DUMPFILE=backup.dmp LOGFILE=import.log;
+
+# 📊 SPACE USAGE CHECK
+SELECT tablespace_name, BYTES/1024/1024 "Size_MB" FROM dba_data_files;
+SELECT segment_name, SUM(bytes)/1024/1024 "Used_MB" FROM dba_segments GROUP BY segment_name;
+
+# 🔁 TEMP TABLESPACE MONITORING
+SELECT * FROM dba_temp_files;
+SELECT tablespace_name, SUM(bytes_used)/1024/1024 AS used_mb FROM v$temp_space_header GROUP BY tablespace_name;
+
+# 🔐 PASSWORD MANAGEMENT
+ALTER PROFILE DEFAULT LIMIT FAILED_LOGIN_ATTEMPTS 5;
+ALTER USER test_user IDENTIFIED BY newpassword;
+```
+
+---
+
+### 📌 Interview Tips (3 Yrs Oracle DBA):
+
+* **What happens when you take backup with `PLUS ARCHIVELOG`?**
+* **How to recover from lost datafile?**
+* **How to monitor session locks or long-running queries?**
+* **Difference between `SHUTDOWN IMMEDIATE` vs `SHUTDOWN ABORT`?**
+* **What is the use of `v$session`, `v$datafile`, `v$logfile`, `v$tablespace`?**
+* **How to enable archivelog mode?**
+* **What is Data Guard, FRA, ASM (basic idea)?**
+
 ```
 SHUTDOWN IMMEDIATE;
 
