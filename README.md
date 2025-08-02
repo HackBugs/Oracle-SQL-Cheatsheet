@@ -1,4 +1,12 @@
 ```
+SET LINESIZE 150;
+SET PAGESIZE 30;
+SET HEADING ON;
+SET FEEDBACK ON;
+SET WRAP ON;
+```
+
+```
 SQL query ke performance analyze (execution plan)
 ------------------------------------------------------
 SET AUTOTRACE TRACE;
