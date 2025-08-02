@@ -1,4 +1,8 @@
 ```
+SET AUTOTRACE TRACE;
+SELECT SYSDATE FROM DUAL;
+```
+```
 tail -100f /u01/app/oracle/diag/rdbms/oradb/oradb/trace/alert_oradb.log
 ```
 
