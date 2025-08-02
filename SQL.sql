@@ -321,4 +321,312 @@ Bilkul! Niche sabhi headings ka **clean and clear list** de raha hoon jo ab tak 
 14. Transactions (BEGIN, COMMIT, ROLLBACK)
 15. SQL Practice Questions (Interview-based)
 
+-----------------------------------------------------------------------------------------------------------------------
+
+Aapka request ekdum clear hai:
+🔴 **SQL A to Z Complete Cheatsheet** chahiye jo **Basic se Advanced tak** sab cover kare — including **concept + queries**, taaki interview me confidently answer de sako.
+
 ---
+
+## ✅ **SQL A to Z Complete Interview Cheatsheet (Basic to Advanced)**
+
+**📚 Language:** Hinglish (easy samajhne ke liye)
+**📌 Format:** Topic → Explanation → Example Query
+
+---
+
+### 🔰 **A. Basics of SQL**
+
+#### 1. **What is SQL?**
+
+Structured Query Language — database se baat karne ka language.
+
+#### 2. **Main SQL Commands Categories:**
+
+| Category           | Commands                              |
+| ------------------ | ------------------------------------- |
+| DDL (Define)       | `CREATE`, `ALTER`, `DROP`, `TRUNCATE` |
+| DML (Manipulate)   | `INSERT`, `UPDATE`, `DELETE`          |
+| DQL (Query)        | `SELECT`                              |
+| DCL (Control)      | `GRANT`, `REVOKE`                     |
+| TCL (Transactions) | `COMMIT`, `ROLLBACK`, `SAVEPOINT`     |
+
+---
+
+### 🔡 **B. SQL Clauses (Rules inside SELECT queries)**
+
+| Clause          | Use                  | Example                 |
+| --------------- | -------------------- | ----------------------- |
+| `SELECT`        | Columns choose karna | `SELECT name FROM emp;` |
+| `FROM`          | Table specify karna  | `FROM emp`              |
+| `WHERE`         | Filter rows          | `WHERE salary > 20000`  |
+| `ORDER BY`      | Sort karna           | `ORDER BY name ASC`     |
+| `GROUP BY`      | Group banana         | `GROUP BY department`   |
+| `HAVING`        | Filter on groups     | `HAVING COUNT(*) > 2`   |
+| `LIMIT` / `TOP` | Limit results        | `LIMIT 10`              |
+
+---
+
+### 🧮 **C. Aggregate Functions (Maths on rows)**
+
+| Function  | Work       | Example       |
+| --------- | ---------- | ------------- |
+| `COUNT()` | Kitne rows | `COUNT(*)`    |
+| `SUM()`   | Total      | `SUM(salary)` |
+| `AVG()`   | Average    | `AVG(age)`    |
+| `MAX()`   | Highest    | `MAX(salary)` |
+| `MIN()`   | Lowest     | `MIN(salary)` |
+
+---
+
+### 🧠 **D. SQL Operators**
+
+#### 1. **Comparison**
+
+`=`, `!=`, `<`, `>`, `<=`, `>=`
+
+#### 2. **Logical**
+
+`AND`, `OR`, `NOT`
+
+#### 3. **Others**
+
+* `IN` → `WHERE dept IN ('HR', 'IT')`
+* `BETWEEN` → `WHERE salary BETWEEN 10000 AND 50000`
+* `LIKE` → `WHERE name LIKE 'A%'`
+* `IS NULL` → `WHERE bonus IS NULL`
+
+---
+
+### 📛 **E. SQL Data Types**
+
+| Type         | Description  | Example               |
+| ------------ | ------------ | --------------------- |
+| `INT`        | Whole number | `salary INT`          |
+| `VARCHAR(n)` | String       | `name VARCHAR(50)`    |
+| `TEXT`       | Long text    | `bio TEXT`            |
+| `DATE`       | Date only    | `dob DATE`            |
+| `DATETIME`   | Date + Time  | `created_at DATETIME` |
+| `BOOLEAN`    | True/False   | `is_active BOOLEAN`   |
+
+---
+
+### 🏗️ **F. Table Management (DDL)**
+
+#### 1. **Create Table**
+
+```sql
+CREATE TABLE employees (
+  emp_id INT PRIMARY KEY,
+  name VARCHAR(50),
+  department VARCHAR(30),
+  salary INT
+);
+```
+
+#### 2. **Alter Table**
+
+```sql
+ALTER TABLE employees ADD hire_date DATE;
+```
+
+#### 3. **Drop Table**
+
+```sql
+DROP TABLE employees;
+```
+
+---
+
+### 🧾 **G. Data Handling (DML)**
+
+#### 1. **Insert**
+
+```sql
+INSERT INTO employees VALUES (1, 'Amit', 'IT', 30000);
+```
+
+#### 2. **Update**
+
+```sql
+UPDATE employees SET salary = 35000 WHERE emp_id = 1;
+```
+
+#### 3. **Delete**
+
+```sql
+DELETE FROM employees WHERE emp_id = 1;
+```
+
+---
+
+### 🔄 **H. SQL Joins**
+
+| Type       | Use                       | Example                                                  |
+| ---------- | ------------------------- | -------------------------------------------------------- |
+| INNER JOIN | Common rows               | `SELECT * FROM emp e INNER JOIN dept d ON e.did = d.id;` |
+| LEFT JOIN  | All from left + matching  | `LEFT JOIN`                                              |
+| RIGHT JOIN | All from right + matching | `RIGHT JOIN`                                             |
+| FULL JOIN  | All rows from both        | *Only in some DBs*                                       |
+
+---
+
+### 🔍 **I. Subqueries**
+
+#### 1. **Single Row Subquery**
+
+```sql
+SELECT name FROM emp WHERE salary = (SELECT MAX(salary) FROM emp);
+```
+
+#### 2. **Multiple Row Subquery**
+
+```sql
+SELECT name FROM emp WHERE dept_id IN (SELECT id FROM dept WHERE location = 'Delhi');
+```
+
+---
+
+### 🧱 **J. Constraints**
+
+| Constraint  | Use                  |
+| ----------- | -------------------- |
+| PRIMARY KEY | Unique + Not Null    |
+| FOREIGN KEY | Link 2 tables        |
+| UNIQUE      | No duplicate allowed |
+| NOT NULL    | Value must be filled |
+| CHECK       | Conditional check    |
+| DEFAULT     | Default value        |
+
+---
+
+### 🧩 **K. DISTINCT Keyword**
+
+```sql
+SELECT DISTINCT department FROM employees;
+```
+
+---
+
+### 🔧 **L. Functions (Built-in)**
+
+* `UPPER(name)` → Capital letters
+* `LOWER(name)` → Small letters
+* `LEN(name)` or `LENGTH(name)`
+* `NOW()` → Current DateTime
+* `DATEDIFF(NOW(), dob)` → Age
+
+---
+
+### 🧠 **M. Advanced Concepts**
+
+#### 1. **Indexes**
+
+```sql
+CREATE INDEX idx_name ON employees(name);
+```
+
+#### 2. **Views**
+
+```sql
+CREATE VIEW emp_summary AS SELECT name, salary FROM employees;
+```
+
+#### 3. **Stored Procedure**
+
+```sql
+DELIMITER //
+CREATE PROCEDURE GetAllEmp()
+BEGIN
+  SELECT * FROM employees;
+END;
+//
+```
+
+#### 4. **Trigger**
+
+```sql
+CREATE TRIGGER before_insert_emp
+BEFORE INSERT ON employees
+FOR EACH ROW
+SET NEW.hire_date = NOW();
+```
+
+#### 5. **Transaction**
+
+```sql
+START TRANSACTION;
+UPDATE employees SET salary = salary + 5000;
+COMMIT;
+```
+
+---
+
+### ❓ **N. Interview Queries (Advanced Level)**
+
+1. **2nd Highest Salary:**
+
+```sql
+SELECT MAX(salary) FROM employees
+WHERE salary < (SELECT MAX(salary) FROM employees);
+```
+
+2. **Duplicate rows delete:**
+
+```sql
+DELETE FROM employees
+WHERE emp_id NOT IN (
+  SELECT MIN(emp_id) FROM employees GROUP BY name, salary
+);
+```
+
+3. **Count of employees in each dept:**
+
+```sql
+SELECT department, COUNT(*) FROM employees GROUP BY department;
+```
+
+4. **Get names who joined in last 30 days:**
+
+```sql
+SELECT name FROM employees
+WHERE hire_date >= CURDATE() - INTERVAL 30 DAY;
+```
+
+5. **Top 3 salaries:**
+
+```sql
+SELECT DISTINCT salary FROM employees
+ORDER BY salary DESC LIMIT 3;
+```
+
+---
+
+### 🧠 **O. Normalization Concepts (Theory)**
+
+| Level | Description                |
+| ----- | -------------------------- |
+| 1NF   | No repeating groups        |
+| 2NF   | Full functional dependency |
+| 3NF   | No transitive dependency   |
+
+---
+
+### 📦 **P. Backup and Export (MySQL Example)**
+
+```bash
+mysqldump -u root -p dbname > backup.sql
+```
+
+---
+
+### 🧾 **Q. Miscellaneous**
+
+| Keyword              | Use                   |
+| -------------------- | --------------------- |
+| `CASE`               | If-else in SELECT     |
+| `IFNULL(col, 'N/A')` | Handle NULL values    |
+| `EXISTS`             | Check subquery return |
+
+---
+
