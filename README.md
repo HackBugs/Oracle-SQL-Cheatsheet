@@ -1,5 +1,5 @@
 ```
-SQL query ke performance analyze  (execution plan)
+SQL query ke performance analyze (execution plan)
 ------------------------------------------------------
 SET AUTOTRACE TRACE;
 SELECT SYSDATE FROM DUAL;
