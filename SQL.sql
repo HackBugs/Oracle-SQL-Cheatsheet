@@ -1,3 +1,9 @@
+--- Find duplicate data 
+SELECT EMP_NAME, COUNT(*) AS total
+FROM employees
+GROUP BY EMP_NAME
+HAVING COUNT(*) > 1;
+
 -- Original Records
 CREATE TABLE employees (
     emp_id      NUMBER PRIMARY KEY,
