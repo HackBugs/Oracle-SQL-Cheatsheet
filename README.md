@@ -1,4 +1,4 @@
-Practice downlaod data from these websites:
+## Downlaod data for Practice from these websites:
 1. https://www.onlinedatagenerator.com
 2. https://mockaroo.com
 3. https://www.generatedata.com/
