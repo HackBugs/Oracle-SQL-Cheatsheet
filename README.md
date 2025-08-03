@@ -1,3 +1,8 @@
+Practice downlaod data from these websites:
+1. https://www.onlinedatagenerator.com
+2. https://mockaroo.com
+3. https://www.generatedata.com/
+
 ```
 SET LINESIZE 200;
 SET PAGESIZE 30;
