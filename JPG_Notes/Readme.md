@@ -85,3 +85,5 @@ Ye notes interview ke time quick revision ke liye banaye gaye hain.
 
 ## Page 11
 ![Notes 11](https://raw.githubusercontent.com/HackBugs/Oracle-SQL-Cheatsheet/main/JPG_Notes/11.jpg)
+
+<hr>
