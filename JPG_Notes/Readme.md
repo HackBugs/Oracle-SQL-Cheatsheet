@@ -24,7 +24,7 @@ Ye notes interview ke time quick revision ke liye banaye gaye hain.
   <tr>
     <td><b>Page 10</b><br><img src="https://raw.githubusercontent.com/HackBugs/Oracle-SQL-Cheatsheet/main/JPG_Notes/10.jpg" width="250"/></td>
     <td><b>Page 11</b><br><img src="https://raw.githubusercontent.com/HackBugs/Oracle-SQL-Cheatsheet/main/JPG_Notes/11.jpg" width="250"/></td>
-    td><b>Page 11</b><br><img src="https://raw.githubusercontent.com/HackBugs/Oracle-SQL-Cheatsheet/main/JPG_Notes/12.jpg" width="250"/></td>
+    <td><b>Page 11</b><br><img src="https://raw.githubusercontent.com/HackBugs/Oracle-SQL-Cheatsheet/main/JPG_Notes/12.jpg" width="250"/></td>
     <td></td>
   </tr>
 </table>
