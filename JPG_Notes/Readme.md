@@ -31,7 +31,27 @@ Ye notes interview ke time quick revision ke liye banaye gaye hain.
 <hr>
 <!--
 # Oracle SQL Cheatsheet - Quick Notes
-Ye notes interview ke time quick revision ke liye banaye gaye hain.  -->
+Ye notes interview ke time quick revision ke liye banaye gaye hain.
+1. https://github.com/HackBugs/PostgreSQL-EDB-Installation/tree/main
+2. https://github.com/HackBugs/PostgreSQL-EDB-Installation/blob/main/EDB_Installation.md
+3. https://github.com/HackBugs/PostgreSQL-EDB-Installation/blob/main/EDB-Tools/PgBouncer.md
+4. https://github.com/HackBugs/PostgreSQL-EDB-Installation/blob/main/EDB-Tools/EDB%20Postgres%20Enterprise%20Manager.md
+5. https://github.com/HackBugs/DevOps-sheet
+6. https://github.com/HackBugs/docker-cmd
+-->
+
+# Useful Repositories — Quick Access
+
+| Title | Description |
+|-------|-------------|
+| **PostgreSQL EDB Installation (main repo)** | [Repository Home](https://github.com/HackBugs/PostgreSQL-EDB-Installation/tree/main) |
+| **EDB Installation Guide (EDB_Installation.md)** | [View Installation Guide](https://github.com/HackBugs/PostgreSQL-EDB-Installation/blob/main/EDB_Installation.md) |
+| **PgBouncer Tool Documentation** | [View PgBouncer Tools](https://github.com/HackBugs/PostgreSQL-EDB-Installation/blob/main/EDB-Tools/PgBouncer.md) |
+| **Postgres Enterprise Manager (PEM) Docs** | [View PEM Tools](https://github.com/HackBugs/PostgreSQL-EDB-Installation/blob/main/EDB-Tools/EDB%20Postgres%20Enterprise%20Manager.md) |
+| **DevOps Sheet (Cheatsheet)** | [View DevOps Sheet](https://github.com/HackBugs/DevOps-sheet) |
+| **Docker Commands Cheatsheet** | [View Docker-cmd](https://github.com/HackBugs/docker-cmd) |
+
+<hr>
 
 ## Page 1
 ![Notes 1](https://raw.githubusercontent.com/HackBugs/Oracle-SQL-Cheatsheet/main/JPG_Notes/1.jpg)
