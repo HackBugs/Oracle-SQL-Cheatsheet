@@ -5,6 +5,10 @@ optach version
 opatch lsinv
 opatch lsinv | grep -i applied
 env | grep ora
+
+chown -Rf oracle:oinstall /u01
+chmod -Rf 755 /u01
+unzip p6880880_190000_Linux-x86-64.zip -d /u01/app/oracle/product/19.0.0/db_home
 ```
 ```
 select name, open_mode, database_role from v$database;
