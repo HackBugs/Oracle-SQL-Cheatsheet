@@ -1,5 +1,7 @@
 ## Opatch CMDs
 ```
+optach version
+./opatch lspatches
 opatch lsinv
 opatch lsinv | grep -i applied
 env | grep ora
