@@ -1,4 +1,37 @@
+## Opatch CMDs
+```
+opatch lsinv
+opatch lsinv | grep -i applied
+env | grep ora
+```
+```
+select name, open_mode, database_role from v$database;
 
+show parameter cluster;
+
+set lines 200 pages 500
+col owner for a15
+col object_name for a35
+select owner, object_name, object_type, status 
+from dba_objects 
+where status = 'INVALID';
+
+col comp_name for a40
+select comp_id, comp_name, version, status 
+from dba_registry;
+
+set lines 200 pages 500
+col action_time for a30
+col action for a30
+col version for a10
+col namespace for a20
+col comments for a47
+select action_time, action, version, namespace, id, comments 
+from dba_registry_history;
+```
+
+
+---
 
 > # **Index bana ke** sab topics ek hi jagah par hamesha yaad rahega. Tum isko **cheat-sheet index** samajh lo jo interview me turant yaad karne ke liye kaam aayega.
 
