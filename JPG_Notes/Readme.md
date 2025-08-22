@@ -1,6 +1,6 @@
 
 
-> # — **Index bana ke** sab topics ek hi jagah par hamesha yaad rahega. Tum isko **cheat-sheet index** samajh lo jo interview me turant yaad karne ke liye kaam aayega.
+> # **Index bana ke** sab topics ek hi jagah par hamesha yaad rahega. Tum isko **cheat-sheet index** samajh lo jo interview me turant yaad karne ke liye kaam aayega.
 
 ---
 
