@@ -9,6 +9,24 @@ env | grep ora
 chown -Rf oracle:oinstall /u01
 chmod -Rf 755 /u01
 unzip p6880880_190000_Linux-x86-64.zip -d /u01/app/oracle/product/19.0.0/db_home
+opatch lsinventory -detail -oh /u01/app/oracle/product/19.0.0/db_1
+./opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir /u01/software/37641958/37642901
+sqlplus / as sysdba
+select count(*) from dba_objects where status = 'INVALID';
+shutdown immediate
+
+lsnartl status
+which optach
+
+export PATH=$PATH:/u01/app/oracle/product/19.0.0/db_home/OPatch
+export PATH=$ORACLE_HOME/OPatch:$PATH
+opatch apply
+./opatch lspatches
+sqlplus / as sysdba
+startup
+select name, open_mode from V$database;
+select count(*) from dba_objects where status = 'INVALID';
+./datapatch verbose
 ```
 ```
 select name, open_mode, database_role from v$database;
