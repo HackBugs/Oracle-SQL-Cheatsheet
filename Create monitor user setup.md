@@ -1,4 +1,4 @@
-Ah! Now the error is different:
+# > Ah! Now the error is different:
 
 ```
 ORA-65096: invalid common user or role name
@@ -58,9 +58,9 @@ GRANT SELECT_CATALOG_ROLE TO monitor_user;
 * `ORA-00922` → special character in password → quote it.
 * `ORA-65096` → common user in root container → create user in PDB instead.
 
----
+<hr>
 
-### **Current situation**
+> # **Current situation**
 
 * You switched to PDB1:
 
