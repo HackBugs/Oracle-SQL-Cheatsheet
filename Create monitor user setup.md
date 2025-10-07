@@ -1,3 +1,171 @@
+Ah! Now the error is different:
+
+```
+ORA-65096: invalid common user or role name
+```
+
+This happens because you are **on a multitenant (CDB) Oracle database**, probably **Oracle 12c or later**. In a **CDB (Container Database)**:
+
+* You **cannot create a “common user”** (one prefixed with `C##`) directly in the root container (`CDB$ROOT`) unless the username starts with `C##`.
+* If you want a **regular local user for a pluggable database (PDB)**, you must **connect to the PDB** first.
+
+---
+
+### 1️⃣ Check current container
+
+```sql
+SHOW CON_NAME;
+```
+
+* If it shows `CDB$ROOT`, you are in the root container.
+* You **cannot create a local user** here without `C##` prefix.
+
+---
+
+### 2️⃣ Switch to a pluggable database (PDB)
+
+```sql
+-- List PDBs
+SELECT name, open_mode FROM v$pdbs;
+
+-- Connect to your PDB (replace PDB1 with your PDB name)
+ALTER SESSION SET CONTAINER = PDB1;
+
+-- Confirm
+SHOW CON_NAME;
+```
+
+---
+
+### 3️⃣ Create the user in PDB
+
+```sql
+CREATE USER monitor_user IDENTIFIED BY "Monitor@123"
+ DEFAULT TABLESPACE USERS
+ TEMPORARY TABLESPACE TEMP
+ ACCOUNT UNLOCK;
+
+GRANT CREATE SESSION TO monitor_user;
+GRANT SELECT_CATALOG_ROLE TO monitor_user;
+```
+
+✅ Now it should work because **local users in PDBs do not need C## prefix**.
+
+---
+
+💡 **Summary:**
+
+* `ORA-00922` → special character in password → quote it.
+* `ORA-65096` → common user in root container → create user in PDB instead.
+
+---
+
+### **Current situation**
+
+* You switched to PDB1:
+
+```sql
+ALTER SESSION SET CONTAINER = PDB1;
+```
+
+* `SELECT name, open_mode FROM v$pdbs;` shows:
+
+```
+PDB1  MOUNTED
+```
+
+* When trying to create a user, you get:
+
+```
+ORA-01109: database not open
+```
+
+✅ This means **PDB1 is only mounted but not open**. In Oracle, you **cannot create users** in a PDB unless it is **OPEN**.
+
+---
+
+### **Step 1: Open the PDB**
+
+```sql
+ALTER PLUGGABLE DATABASE PDB1 OPEN;
+```
+
+* Optional: To open it automatically next time:
+
+```sql
+ALTER PLUGGABLE DATABASE PDB1 SAVE STATE;
+```
+
+* Verify:
+
+```sql
+SELECT name, open_mode FROM v$pdbs;
+```
+
+You should see:
+
+```
+PDB1  READ WRITE
+```
+
+---
+
+### **Step 2: Connect to PDB1**
+
+```sql
+ALTER SESSION SET CONTAINER = PDB1;
+SHOW CON_NAME;
+```
+
+* Should show `PDB1`
+
+---
+
+### **Step 3: Create your monitor user**
+
+Now the syntax works with **quoted password** (because of `@`):
+
+```sql
+CREATE USER monitor_user IDENTIFIED BY "Monitor@123"
+ DEFAULT TABLESPACE USERS
+ TEMPORARY TABLESPACE TEMP
+ ACCOUNT UNLOCK;
+```
+
+---
+
+### **Step 4: Grant privileges**
+
+```sql
+GRANT CREATE SESSION TO monitor_user;
+GRANT SELECT_CATALOG_ROLE TO monitor_user;
+```
+
+---
+
+✅ **Summary of commands to fix your issue:**
+
+```sql
+-- Open PDB
+ALTER PLUGGABLE DATABASE PDB1 OPEN;
+ALTER PLUGGABLE DATABASE PDB1 SAVE STATE;
+
+-- Switch to PDB
+ALTER SESSION SET CONTAINER = PDB1;
+
+-- Create user with special character in password
+CREATE USER monitor_user IDENTIFIED BY "Monitor@123"
+ DEFAULT TABLESPACE USERS
+ TEMPORARY TABLESPACE TEMP
+ ACCOUNT UNLOCK;
+
+-- Grant monitoring privileges
+GRANT CREATE SESSION TO monitor_user;
+GRANT SELECT_CATALOG_ROLE TO monitor_user;
+```
+
+<hr>
+
 # **1) Create Monitoring DB User (Read‑Only Catalog Access)**
 
 This user is created for **day-to-day monitoring**. It has **limited system privileges** and **catalog read access**.
