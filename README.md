@@ -1,3 +1,4 @@
+`(Client Process) → Listener (Server) → Server Process → Database Instance`
 
 ## [My Machine Repo](https://github.com/HackBugs/DevOps-machine-create/tree/main)
 ## Downlaod data for Practice from these websites:
