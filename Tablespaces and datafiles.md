@@ -1,3 +1,161 @@
+> # Perfect Shahnwaj bhai 🔥
+Aapka requirement bilkul clear hai — **ek naya user create karna hai**, **uske liye tablespace banana hai**, aur **datafile assign karna hai**.
+Main aapko **step-by-step + correct SQL commands** de raha hu 👇
+
+```
+SELECT name FROM v$datafile;
+```
+---
+
+## 🧱 **Step 1️⃣: Tablespace Create Karna**
+
+```sql
+CREATE TABLESPACE hack01
+DATAFILE '/u01/app/oracle/oradata/orcl/hack01.dbf'
+SIZE 500M
+AUTOEXTEND ON NEXT 100M MAXSIZE UNLIMITED;
+```
+
+### 🧠 Explanation:
+
+* `hack01` → tablespace ka naam
+* `hack01.dbf` → physical file jisme data store hoga
+* `SIZE 500M` → starting size
+* `AUTOEXTEND` → file automatically badhta rahega jab full ho jaye
+
+---
+
+## 👤 **Step 2️⃣: User Create Karna**
+
+```sql
+CREATE USER hack IDENTIFIED BY hack
+DEFAULT TABLESPACE hack01
+TEMPORARY TABLESPACE temp
+QUOTA UNLIMITED ON hack01;
+```
+
+### 🧠 Explanation:
+
+* `hack` → username
+* `IDENTIFIED BY hack` → password
+* `DEFAULT TABLESPACE hack01` → user ka data `hack01` tablespace me jayega
+* `TEMPORARY TABLESPACE temp` → sorting operations ke liye
+* `QUOTA UNLIMITED ON hack01` → user ko space limit nahi
+
+---
+
+## 🔑 **Step 3️⃣: User Ko Permission Dena**
+
+```sql
+GRANT CONNECT, RESOURCE TO hack;
+```
+
+### 🧠 Explanation:
+
+* `CONNECT` → user ko login karne ki permission deta hai
+* `RESOURCE` → user ko apna tables, indexes, etc. banane ki permission deta hai
+
+---
+
+## ✅ **Final Output**
+
+Ab user `hack` ready hai —
+
+* Uska apna **tablespace hack01** hai
+* Uske andar ek **datafile hack01.dbf** hai
+* User login karke apna data manage kar sakta hai
+
+---
+
+## 🔍 **Optional Verification Commands**
+
+1️⃣ Check user:
+
+```sql
+SELECT username, default_tablespace FROM dba_users WHERE username='HACK';
+```
+
+2️⃣ Check tablespace:
+
+```sql
+SELECT tablespace_name, file_name, bytes/1024/1024 AS size_MB FROM dba_data_files WHERE tablespace_name='HACK01';
+```
+<hr>
+
+> # Perfect Shahnwaj bhai 😎
+Yahan mai aapke liye **full setup + rollback commands** likh raha hu — ready-to-use, step by step.
+
+---
+
+# **1️⃣ Create Tablespace, User, Datafile**
+
+```sql
+-- Step 1: Create Tablespace
+CREATE TABLESPACE hack01
+DATAFILE '/u01/app/oracle/oradata/orcl/hack01.dbf'
+SIZE 500M
+AUTOEXTEND ON NEXT 100M MAXSIZE UNLIMITED;
+
+-- Step 2: Create User
+CREATE USER hack IDENTIFIED BY hack
+DEFAULT TABLESPACE hack01
+TEMPORARY TABLESPACE temp
+QUOTA UNLIMITED ON hack01;
+
+-- Step 3: Grant Permissions
+GRANT CONNECT, RESOURCE TO hack;
+```
+
+### ✅ Explanation:
+
+* Tablespace = hack01 → data store location
+* Datafile = hack01.dbf → physical file
+* User = hack → login & manage tables
+* TEMP tablespace = temp → sorting operations
+* QUOTA UNLIMITED → space limit nahi
+
+---
+
+# **2️⃣ Verification Commands**
+
+```sql
+-- Check user info
+SELECT username, default_tablespace, temporary_tablespace
+FROM dba_users
+WHERE username='HACK';
+
+-- Check tablespace and datafile
+SELECT tablespace_name, file_name, bytes/1024/1024 AS size_MB
+FROM dba_data_files
+WHERE tablespace_name='HACK01';
+```
+
+---
+
+# **3️⃣ Rollback / Drop Commands (Cleanup)**
+
+```sql
+-- Step 1: Drop user
+DROP USER hack CASCADE;
+
+-- Step 2: Drop tablespace (including datafile)
+DROP TABLESPACE hack01 INCLUDING CONTENTS AND DATAFILES;
+```
+
+### 🧠 Notes:
+
+* `CASCADE` → user ke saare objects delete kar dega
+* `INCLUDING CONTENTS AND DATAFILES` → tablespace ke andar saara data aur physical file bhi delete ho jayega
+
+---
+
+💡 **Tip:**
+
+* Test environment me pehle create karo, verify karo, phir production me use karo
+* Datafile ka path apne environment ke hisaab se adjust karo (`/u01/app/oracle/oradata/orcl/`)
+
+<hr>
+
 > # Tablespace, datafile, aur user creation ke commands me chhoti chhoti galtiyaan aur confusion clear kar lete hain step-by-step 👇
 
 ---
