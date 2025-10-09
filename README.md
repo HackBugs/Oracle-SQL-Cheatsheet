@@ -1,4 +1,11 @@
 `(Client Process) → Listener (Server) → Server Process → Database Instance`
+```
+SET LINESIZE 200;
+SET PAGESIZE 30;
+SET HEADING ON;
+SET FEEDBACK ON;
+SET WRAP ON
+```
 
 ## [My Machine Repo](https://github.com/HackBugs/DevOps-machine-create/tree/main)
 ## Downlaod data for Practice from these websites:
