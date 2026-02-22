@@ -1,3 +1,66 @@
+## 1️⃣ Kya Galti Thi? (The Problem)
+
+Aapka Windows aur VM do alag-alag **subnets (network raste)** par the:
+
+* **Windows IP:** 192.168.0.121 (Series 0)
+* **VM IP:** 192.168.1.124 (Series 1)
+
+**Wajah:**
+VirtualBox by default **NAT mode** use karta hai. Is mode mein VM ek alag “private island” par hota hai, jise Host (Windows) directly access nahi kar pata.
+
+---
+
+## 2️⃣ Humne Kya Kiya? (The Solution)
+
+Humne 3 main kaam kiye:
+
+### ✅ 1. Bridged Adapter
+
+VirtualBox ki setting change karke VM ko direct Wi-Fi router se connect kiya.
+Isse VM aur Windows ek hi network (same room) mein aa gaye.
+
+### ✅ 2. Manual IP (Static IP)
+
+VM ka IP manually **192.168.0.150** set kiya, taki wo Windows ki series (0) se match kare.
+
+### ✅ 3. Firewall Off
+
+Linux ki `firewalld` service ko stop kiya, taki incoming connection requests block na ho.
+
+---
+
+## 3️⃣ DBA Short Notes (Future Reference)
+
+| Component  | Command / Setting             | Why?                                          |
+| ---------- | ----------------------------- | --------------------------------------------- |
+| VirtualBox | Bridged Adapter               | VM ko Host ke network ka hissa banane ke liye |
+| Linux IP   | `nmcli connection modify ...` | IP ko Windows ki series mein lane ke liye     |
+| Check IP   | `ip a`                        | VM ka current IP dekhne ke liye               |
+| Firewall   | `systemctl stop firewalld`    | Connection block hone se bachane ke liye      |
+| SSH        | `systemctl status sshd`       | Putty/MobaXterm se connect karne ke liye      |
+
+---
+
+## 🚀 Ab Agla Step Kya Hai?
+
+Ab jab network set ho chuka hai, to aap:
+
+1. **MobaXterm / PuTTY se login karke test karna chahte hain?**
+   (Taaki VM ki chhoti screen baar-baar use na karni pade)
+
+**Ya**
+
+2. Oracle Listener configuration check karna chahte hain?
+
+```
+sudo nmcli connection modify enp0s3 ipv4.addresses 192.168.0.150/24
+sudo nmcli connection modify enp0s3 ipv4.gateway 192.168.0.1
+sudo nmcli connection modify enp0s3 ipv4.method manual
+sudo nmcli connection up enp0s3
+```
+
+<hr>
+
 `(Client Process) → Listener (Server) → Server Process → Database Instance`
 ```
 SET LINESIZE 200;
