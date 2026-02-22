@@ -1,3 +1,8 @@
+> ## Putty Auto connect cmd
+```
+"C:\Program Files\PuTTY\putty.exe" -ssh oracle@192.168.0.150 -pw baraka@2020
+```
+
 ## 1️⃣ Kya Galti Thi? (The Problem)
 
 Aapka Windows aur VM do alag-alag **subnets (network raste)** par the:
