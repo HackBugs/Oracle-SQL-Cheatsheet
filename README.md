@@ -41,16 +41,7 @@ Linux ki `firewalld` service ko stop kiya, taki incoming connection requests blo
 
 ---
 
-## 🚀 Ab Agla Step Kya Hai?
-
-Ab jab network set ho chuka hai, to aap:
-
-1. **MobaXterm / PuTTY se login karke test karna chahte hain?**
-   (Taaki VM ki chhoti screen baar-baar use na karni pade)
-
-**Ya**
-
-2. Oracle Listener configuration check karna chahte hain?
+## Step 4: VM ka IP manually change karein
 
 ```
 sudo nmcli connection modify enp0s3 ipv4.addresses 192.168.0.150/24
